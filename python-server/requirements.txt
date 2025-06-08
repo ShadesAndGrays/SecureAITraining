@@ -1,7 +1,0 @@
-numpy
-matplotlib
-pandas
-scikit-learn
-torch
-flwr
-# flasl or django

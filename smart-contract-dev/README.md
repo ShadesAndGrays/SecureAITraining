@@ -1,13 +1,21 @@
-# Sample Hardhat Project
+All smart contracts are located in the `contracts` folder.
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+## Starting a Hardhat Server
 
-Try running some of the following tasks:
+```bash
+npx hardhat node --hostname 127.0.0.1 --port 8545
+```
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
+http://127.0.0.1:8545 is the default, so the following is also equivalent:
+
+```bash
 npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
+```
+
+Scripts for interaction and end-to-end testing are found in the `./scripts` folder.
+
+Currently, Ignition is used to deploy the smart contracts:
+
+```bash
+npx hardhat ignition deploy .\ignition\modules\{*}.ts --network localhost
 ```
