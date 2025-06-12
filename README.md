@@ -21,9 +21,12 @@ The project is organized into four main components:
   - Real-time monitoring of training progress
   - Listening to blockchain events (e.g., eligibility, model updates)
   - Fetching the global model CID from the blockchain
+  - Upload Model to IPFS
+  - Upload CID To blockchain jkj
 - **Python Client:**
   - Handles local AI model training on user data
   - Exposes a Flask server for the DApp to communicate with Python code, enabling seamless integration of data science workflows
+  - Send Local Model to Frontend
 
 ### 2. Python Server
 - **Role:** Coordinates federated learning tasks. The design aims to minimize reliance on a central server to maximize decentralization.
