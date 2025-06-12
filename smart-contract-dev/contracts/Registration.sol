@@ -15,7 +15,7 @@ contract Registration {
     return owner;
   }
   function isValid(address client) public view returns (bool) {
-    return registration_list[client] && banned_list[client];
+    return registration_list[client] && !banned_list[client];
 
   }
 

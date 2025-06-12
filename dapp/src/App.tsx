@@ -1,12 +1,51 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useEffect, useState } from "react";
+import { Web3, Contract } from "web3";
+
 import "./App.css";
 
 function App() {
   const [input, setInput] = useState(1)
   const [count, setCount] = useState(1);
+	const [warning, setWarning] = useState<string | null>(null);
+	const [web3, setWeb3] = useState<Web3 | null>(null);
+  const [connectButtonDisabled, setConnectButtonDisabled] = useState<boolean> (false);
+	const [accounts, setAccounts] = useState<string[] | null>(null);
+	const [connectedAccount, setConnectedAccount] = useState<string | null>(null);
+	const [contract, setContract] = useState< Contract<any> | null>(null);
 
+
+  contract
+  setContract
+  // Set up web3
+	useEffect(() => {
+		// ensure that there is an injected the Ethereum provider
+		if (window.ethereum) {
+			// use the injected Ethereum provider to initialize Web3.js
+      setWeb3(new Web3(window.ethereum))
+      setConnectButtonDisabled(false);
+
+    }else{
+			// no Ethereum provider - instruct user to install MetaMask
+			setWarning('Please install MetaMask');
+      setConnectButtonDisabled(true);
+    }
+  },[]);
+
+  useEffect(() => {
+
+    const fs = require('fs')
+    const path = require('path')
+
+    const deployed_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+    const abi = require('./Contracts/Registration.json')
+    if (web3){
+      const c = new web3.eth.Contract(abi,deployed_address)
+      c.handleRevert = true
+      setContract(c)
+    }
+  },[web3])
+
+  // Example function of interacting with local python flask server 
    let getFactorial = () =>{
     fetch(`http://localhost:5000/calculate?number=${input}`)
         .then(response => response.json())
@@ -16,42 +55,28 @@ function App() {
             })
         .catch(error => console.error('Error:', error));
 }
+let requestAccounts = async () =>  {
+  if (web3 === null){
+    console.log("Web3 is not initialzed")
+    return;
+  }
+
+	await window.ethereum.request({ method: 'eth_requestAccounts' });
+  const allAccounts = await web3.eth.getAccounts();
+
+  setAccounts(allAccounts);
+  setConnectedAccount(allAccounts[0]);
+  console.log("Web3 is initialized Account: ", allAccounts[0] ,allAccounts?.length)
+}
   return (
     <>
       <div>
-        <label >Input: </label>
-        <input
-        type="number"
-        value={input}
-        onChange={e => setInput(Number(e.target.value))}
-        />
-
+        <div id="account">{connectedAccount ? `Address:  ${connectedAccount}` : ""}</div>
         <h1> Federated Day </h1>
-        <p>This page would be used to regeister the user to the dapp</p>
-        <button onClick={() => getFactorial()}> Click me </button>
-        <p> Count: {count}</p>
+        <div id="warn" style={{color: 'red'}}> {warning} </div>
+        <p>Register to participate in the Blockchain Federated Learning Process</p>
+        <button onClick={() => requestAccounts()} disabled={connectButtonDisabled}> Connect Wallet and Register</button>
       </div>
-
-      {/* <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p> */}
     </>
   );
 }
