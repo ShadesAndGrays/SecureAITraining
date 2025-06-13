@@ -48,7 +48,12 @@ The project is organized into four main components:
 ### 4. Blockchain and IPFS
 - **Blockchain:** Hosts smart contracts and records key events and metadata.
 - **IPFS:** Used for decentralized storage of model weights and artifacts. The project will evaluate whether sensitive data can be securely stored on-chain or if IPFS is required for privacy and scalability.
+- **Pinning Services:** Use IPFS pinning services (like Pinata, Infura, or your own node) to ensure files are always available and propagate faster.
+- **Hybrid Storage:** Consider using a CDN or centralized storage alongside IPFS. Centralization can improve speed and reliability, while IPFS provides hash-based lookup and auditability.
 
+Considerations:
+- **Timeouts:** Implement timeouts for unavailable users to prevent rounds from stalling.
+- **Pre-fetching:** Encourage participants to pre-fetch the global model before the round starts to reduce waiting time.
 ---
 
 ## Usage
@@ -75,3 +80,9 @@ npm run launch:dev
 - All components are designed to be dockerized for easy deployment and reproducibility.
 - See [`TODO.md`](TODO.md) for a detailed breakdown of planned features and progress.
 - For API documentation and further setup instructions, refer to the respective `README.md` files in each subdirectory.
+
+## Prospective Datasets
+
+[Email Spam](https://www.kaggle.com/datasets/purusinghvi/email-spam-classification-dataset)
+[Extended MNIST](https://www.kaggle.com/datasets/crawford/emnist)
+[California Housing](https://www.kaggle.com/datasets/camnugent/california-housing-prices)
