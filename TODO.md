@@ -1,7 +1,7 @@
 ## DAPP
 
-- [ ] Dapp landing page setup
-- [ ] Local python server setup
+- [x] Dapp landing page setup
+- [x] Local python server setup
 - [ ] Authentication and authorization using Wallet key
 - [ ] dashboard monitoring training progress
 - [ ] Error handling and user notification
@@ -10,8 +10,8 @@
 - [ ] Smart contract deployment script
 - [ ] Blockchain monitoring tools
 - [ ] Transaction logging and auditing
-- [ ] Live testnode
-- [ ] Hyperledger Besu setup // For entripse setup
+- [x] Live testnode
+- [x] Hyperledger Besu setup // For entripse setup
 
 
 ## SMART CONTRACT
@@ -25,7 +25,7 @@
 
 ## FEDERATED LEARNING 
 - [ ] Data processing pipeline
-- [ ] Modle aggregation login
+- [ ] Model aggregation 
 - [ ] Privacy preserving techniquies
   - [ ] Differential privacy
   - [ ] Secure aggregation / Homomorphic Encryption (paillier encryption)
