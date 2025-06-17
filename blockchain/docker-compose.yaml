@@ -9,81 +9,80 @@ services:
     container_name: boot-node-1
     volumes:
       - ./config/besu/genesis.json:/opt/besu/conf/genesis.json
+      - ./config/besu/config.toml:/opt/besu/conf/config.toml
       - ./config/besu:/opt/besu/conf
       - ./data/besu1:/opt/besu/data
     command:
-      - --data-path="/opt/besu/data"
-      - --genesis-file="/opt/besu/conf/genesis.json"
-      - --rpc-http-enabled=true
+      - --config-file=/opt/besu/conf/config.toml
       - --rpc-http-port=8541
-      - --rpc-http-host="0.0.0.0"
-      - --rpc-http-cors-origins=["*"]
-      - --rpc-http-api=ETH,NET,WEB3,QBFT,ADMIN,PERM,TRACE,TXPOOL,EEA,PRIV
       - --p2p-port=30301
-      - --bootnodes=${BESU_BOOTNODES}
     ports:
       - 8541:8541
       - 30301:30301
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.2
 
   boot-node-2:
     <<: *boot-node
     container_name: boot-node-2
     volumes:
       - ./config/besu/genesis.json:/opt/besu/conf/genesis.json
+      - ./config/besu/config.toml:/opt/besu/conf/config.toml
       - ./config/besu:/opt/besu/conf
       - ./data/besu2:/opt/besu/data
     command:
-      - --data-path="/opt/besu/data"
-      - --genesis-file="/opt/besu/conf/genesis.json"
-      - --rpc-http-enabled=true
+      - --config-file=/opt/besu/conf/config.toml
       - --rpc-http-port=8542
-      - --rpc-http-host="0.0.0.0"
-      - --rpc-http-cors-origins=["*"]
-      - --rpc-http-api=ETH,NET,WEB3,QBFT,ADMIN,PERM,TRACE,TXPOOL,EEA,PRIV
       - --p2p-port=30302
-      - --bootnodes=${BESU_BOOTNODES}
     ports:
       - 8542:8542
       - 30302:30302
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.3
 
   boot-node-3:
     <<: *boot-node
     container_name: boot-node-3
     volumes:
       - ./config/besu/genesis.json:/opt/besu/conf/genesis.json
+      - ./config/besu/config.toml:/opt/besu/conf/config.toml
       - ./config/besu:/opt/besu/conf
       - ./data/besu3:/opt/besu/data
     command:
-      - --data-path="/opt/besu/data"
-      - --genesis-file="/opt/besu/conf/genesis.json"
-      - --rpc-http-enabled=true
+      - --config-file=/opt/besu/conf/config.toml
       - --rpc-http-port=8543
-      - --rpc-http-host="0.0.0.0"
-      - --rpc-http-cors-origins=["*"]
-      - --rpc-http-api=ETH,NET,WEB3,QBFT,ADMIN,PERM,TRACE,TXPOOL,EEA,PRIV
       - --p2p-port=30303
-      - --bootnodes=${BESU_BOOTNODES}
     ports:
       - 8543:8543
       - 30303:30303
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.4
 
   boot-node-4:
     <<: *boot-node
     container_name: boot-node-4
     volumes:
       - ./config/besu/genesis.json:/opt/besu/conf/genesis.json
+      - ./config/besu/config.toml:/opt/besu/conf/config.toml
       - ./config/besu:/opt/besu/conf
       - ./data/besu4:/opt/besu/data
     command:
-      - --data-path="/opt/besu/data"
-      - --genesis-file="/opt/besu/conf/genesis.json"
-      - --rpc-http-enabled=true
+      - --config-file=/opt/besu/conf/config.toml
       - --rpc-http-port=8544
-      - --rpc-http-host="0.0.0.0"
-      - --rpc-http-cors-origins=["*"]
-      - --rpc-http-api=ETH,NET,WEB3,QBFT,ADMIN,PERM,TRACE,TXPOOL,EEA,PRIV
       - --p2p-port=30304
-      - --bootnodes=${BESU_BOOTNODES}
     ports:
       - 8544:8544
       - 30304:30304
+    networks:
+      besu-net:
+        ipv4_address: 172.28.0.5
+
+networks:
+  besu-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

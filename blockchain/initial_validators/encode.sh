@@ -1,0 +1,1 @@
+docker run --rm -v "$PWD/data:/data" hyperledger/besu rlp encode --from=/data/toEncode.json --type=QBFT_EXTRA_DATA

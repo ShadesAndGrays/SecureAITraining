@@ -1,0 +1,16 @@
+
+bootnodes=[
+"enode://b1e299622dbe94266aafd04a213b28536ce340ad4d4bbccb99bdc83c8cb414242b2b614a5c89bd9352aaa3410767d17b648aaaf02d563d87483412fa6ea39736@172.28.0.2:30301",
+"enode://f01c52d97b76b71ec056deec995da709514516aade696df2f6bad57b44243df773d96607eb13003a65e084bd1d74103b3071d0c00364afde16760d59ac83490f@172.28.0.3:30302",
+"enode://4b65643016019d07d80b9a68996f13dce90ad36fcec3c497a92ec3270df64a9741532badcdecfabedccc00fe518e2071d110b6ee7ed3ed0ae50c27b30ade8d4b@172.28.0.4:30303",
+"enode://7a80c1e0556ce31081325c009f714a146d2422e950723258bf2da09b48ba04ffdfb88983e7bd0b1b31dbddd199ae25dda27506e46e67cca8e2882341bf8089b2@172.28.0.5:30304"
+]
+data-path="/opt/besu/data"
+genesis-file="/opt/besu/conf/genesis.json"
+
+rpc-http-enabled=true
+rpc-http-host="0.0.0.0"
+rpc-http-cors-origins=["*"]
+rpc-http-api=["ETH","NET","WEB3","QBFT","ADMIN","PERM","TRACE","TXPOOL","EEA","PRIV"]
+
+sync-min-peers=2
