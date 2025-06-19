@@ -16,7 +16,7 @@
 
 ## SMART CONTRACT
 
-- [ ] Client selection
+- [x] Client selection
 - [ ] IPFS hast stroage selection
 - [ ] Model update, submission and validation
 - [ ] Incentive/reward mechanism for participants

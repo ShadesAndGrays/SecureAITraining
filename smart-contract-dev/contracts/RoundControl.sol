@@ -1,32 +1,35 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+import "./Registration.sol";
+
 contract Round {
     uint256 public roundId;
     string public globalModelCid;
     string public nextRoundCid;
-    uint64 public noOfParticipants;
     address[] private participants;
+    mapping(address => bool) public isParticipant;
     mapping(address => string) participantCid;
 
     constructor(
         uint256 _roundId,
-        uint64 _noOfParticipants,
-        string memory _globalModelCid
+        string memory _globalModelCid,
+        address[] memory _participants
+
     ) {
         roundId = _roundId;
         globalModelCid = _globalModelCid;
-        noOfParticipants = _noOfParticipants;
+        participants = _participants;
+        for (uint i = 0; i < participants.length; i++){
+            isParticipant[participants[i]] = true;
+        }
     }
 
-    // Remove this later in favour of register contract 
-    mapping(address => bool) public isParticipant;
-
-    function addParticipant(address participant) public {
-        require(!isParticipant[participant], "Failed AddParticipant: Participant is already registered");
-        participants.push(participant);
-        isParticipant[participant] = true;
-    }
+    // function addParticipant(address participant) private {
+    //     require(!isParticipant[participant], "Failed AddParticipant: Participant is already registered");
+    //     participants.push(participant);
+    //     isParticipant[participant] = true;
+    // }
 
     function isRegistered(address participant) public view returns (bool) {
         return isParticipant[participant];
@@ -55,6 +58,7 @@ contract RoundControl {
     bool private active;
     address public owner;
     string private initialGlobalModelCid;
+    Registration private registrationContract;
 
     mapping(uint256 => address) roundMapping;
 
@@ -66,11 +70,12 @@ contract RoundControl {
         _;
     }
 
-    constructor(string memory _initialGlobalModelCid) {
+    constructor(string memory _initialGlobalModelCid,address _registrationContract) {
         active = false;
         currentRoundId = 0;
         owner = msg.sender;
         initialGlobalModelCid = _initialGlobalModelCid;
+        registrationContract = Registration(_registrationContract);
     }
 
     function getRound(uint256 _roundId) public view returns (address) {
@@ -81,20 +86,21 @@ contract RoundControl {
         require(active, "Failed Create:  Current Round is not active");
 
         uint256 roundId = currentRoundId;
+        address[] memory participants = registrationContract.getRandomRegistrant(_noOfParticipants);  // Get random of registrants
 
         if (roundId == 0) {
             // First Round
             Round newRound = new Round(
                 currentRoundId,
-                _noOfParticipants,
-                initialGlobalModelCid
+                initialGlobalModelCid,
+                participants
             );
             roundMapping[currentRoundId] = address(newRound);
         } else {
             Round newRound = new Round(
                 currentRoundId,
-                _noOfParticipants,
-                Round(roundMapping[roundId - 1]).nextRoundCid()
+                Round(roundMapping[roundId - 1]).nextRoundCid(),
+                participants
             );
             roundMapping[currentRoundId] = address(newRound);
         }
