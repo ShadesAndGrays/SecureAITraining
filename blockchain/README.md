@@ -24,3 +24,38 @@ docker compose up -d
 - Common configuration is stored in `config/besu/config.toml`.
 - Node-specific settings are hardcoded in `docker-compose.yaml`.
 - The genesis block is defined in `config/besu/genesis.json`.
+
+
+## Free Gas Netwrok
+The network is currently configures to use qbft concensus mechanism. A **POA** concensus mechanism
+
+To configure a qbft network, make the following changes to the config section of the `config/besu/gensis.json` file
+```json
+{
+  "config": {
+    ...
+      "qbft": {
+          "epochlength": 30000,
+          "blockperiodseconds": 5,
+          "requesttimeoutseconds": 10
+      }
+  }
+}
+```
+Futhermore we create a gas free network for the prototype using the following set of changes
+```json
+{
+  "config": {
+    ...
+    "contractSizeLimit": 2147483647,
+    ...
+  }
+  ...
+  "gasLimit": "0x1fffffffffffff",
+}
+```
+
+and the following entry in the config file
+```toml
+min-gas-price=0
+```
