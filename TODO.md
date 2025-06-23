@@ -2,12 +2,12 @@
 
 - [x] Dapp landing page setup
 - [x] Local python server setup
-- [ ] Authentication and authorization using Wallet key
+- [x] Authentication and authorization using Wallet key
 - [ ] dashboard monitoring training progress
 - [ ] Error handling and user notification
 
 ## BLOCKCHAIN
-- [ ] Smart contract deployment script
+- [x] Smart contract deployment script
 - [ ] Blockchain monitoring tools
 - [ ] Transaction logging and auditing
 - [x] Live testnode

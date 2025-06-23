@@ -4,70 +4,19 @@ import { Web3, Contract } from "web3";
 import "./App.css";
 import RegistrationArtifact from "./Contracts/Registration.json";
 import CountArtifact from "./Contracts/Count.json";
+// Register 
+// Subscribe to events
+// Or Oracalize the front end
+// Recieve Job
 
 
-type CountProps  ={
-  value:number;
-}
 
-function Count(props:CountProps){
-
-  // const [web3, setWeb3] = useState<Web3 | null>(null);
-
-
-  // // Set up web3
-  // useEffect(() => {
-  //   // ensure that there is an injected the Ethereum provider
-  //   if (window.ethereum) {
-  //     // use the injected Ethereum provider to initialize Web3.js
-  //     setWeb3(new Web3(window.ethereum));
-  //   } else {
-  //     console.log("error")
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   const deployed_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  //   const abi = CountArtifact.abi;
-  //   console.log(abi);
-  //   if (web3) {
-  //     const c = new web3.eth.Contract(abi, deployed_address);
-  //     c.handleRevert = true;
-  //     setContract(c);
-  //   }
-  // }, [web3]);
-
-  // useEffect(() => {
-  //   if (!contract){
-  //     setValue(Number(-1));
-  //     return;
-  //   }
-  // const subscription = contract.events.countChanged();
-  //   subscription.on('data', (event) => {
-  //               console.log('ValueUpdated event received:', event);
-  //               console.log('Value:', event.returnValues);
-  //               setValue(Number(event.returnValues));
-  //           })
-  // },[web3])
-
-  return (
-    <>
-      <div>
-        <p>
-          Hello: {props.value}
-        </p>
-      </div>
-    </>
-  )
-
-}
 function App() {
   const [input, setInput] = useState(1);
   const [count, setCount] = useState(1);
   const [warning, setWarning] = useState<string | null>(null);
   const [web3, setWeb3] = useState<Web3 | null>(null);
-  const [connectButtonDisabled, setConnectButtonDisabled] =
-    useState<boolean>(false);
+  const [connectButtonDisabled, setConnectButtonDisabled] = useState<boolean>(false);
   const [accounts, setAccounts] = useState<string[] | null>(null);
   const [connectedAccount, setConnectedAccount] = useState<string | null>(null);
   const [contract, setContract] = useState<Contract<any> | null>(null);
@@ -161,7 +110,6 @@ function App() {
   return (
     <>
       <div>
-        <Count value={value}/>
         <div id="account">
           {connectedAccount ? `Address:  ${connectedAccount}` : ""}
         </div>

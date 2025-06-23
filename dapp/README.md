@@ -1,6 +1,7 @@
 # DAPP
 
 This is the front end of the application. Users will be able to interact with the smart contract deployed on the blockchain.  
+For the prototype, a single flask server would be used to simulate multiple clients performing the training
 
 The users would be able to:  
 - [x] Connect the wallet
