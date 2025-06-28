@@ -2,12 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <link rel="stylesheet" href="index.css"> 
+    <title>Feduntu</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="root">
+      <h1> Feduntu</h1>
+
+        <div id="account">
+        </div>
+
+        <div id="warn" ></div>
+        <p>
+          Register to participate in the Blockchain Federated Learning Process
+        </p>
+
+        <button id="connectWalletBtn">
+          Connect Wallet
+        </button>
+
+        <button handleRegister()>
+          Register on Blockchain
+        </button>
+
+    </div>
+    <script type="module" src="index.js"></script>
   </body>
 </html>

@@ -6,7 +6,7 @@ This project is the final year work of Clement Obieke, submitted in partial fulf
 
 ## Project Overview
 
-**Secure AI Training** is a decentralized federated learning platform that leverages blockchain and smart contracts to coordinate collaborative AI model training while preserving data privacy. The system is modular, with each component responsible for a specific aspect of the workflow.
+**Secure AI Training** is a decentralized federated learning platform that leverages blockchain and smart contracts to coordinate collaborative AI model training while preserving data privacy through the use of Federated learning techniques.
 
 ---
 
@@ -21,21 +21,10 @@ The project is organized into four main components:
   - Real-time monitoring of training progress
   - Listening to blockchain events (e.g., eligibility, model updates)
   - Fetching the global model CID from the blockchain
-- **Python Client:**
+
+### 2. Python Client
   - Handles local AI model training on user data
   - Exposes a Flask server for the DApp to communicate with Python code, enabling seamless integration of data science workflows
-
-### 2. Python Server
-- **Role:** Coordinates federated learning tasks. The design aims to minimize reliance on a central server to maximize decentralization.
-- **Federated Learning Responsibilities:**
-  1. Client selection
-  2. Global model distribution
-  3. Client computation/training and validation
-  4. Aggregation of model updates
-  5. Global model update
-- **Implemented Server Tasks:**
-  - Global model update
-  - Aggregation
 
 ### 3. Smart Contract Development
 - **Purpose:** Implements core logic on the blockchain for transparency and trustlessness.
