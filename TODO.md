@@ -2,7 +2,7 @@
 
 - [x] Dapp landing page setup
 - [x] Authentication and authorization using Wallet key
-- [ ] dashboard monitoring training progress
+- [x] dashboard monitoring training progress
 - [ ] Error handling and user notification
 
 ## python server

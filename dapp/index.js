@@ -100,3 +100,30 @@ const handleRegister = async () => {
     setWarning("Transaction failed: " + error.message);
   }
 };
+
+// Navigation/page switching logic
+export function showPage(pageId) {
+  document.getElementById('proposerPage').style.display = 'none';
+  document.getElementById('participantPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'none';
+  document.getElementById(pageId).style.display = 'block';
+}
+
+// Show proposer page by default on load
+showPage('proposerPage');
+
+// Federated learning type selection for proposer
+export function startFL(type) {
+  document.getElementById('proposerStatus').innerText = `Started federated learning: ${type}`;
+  // TODO: Call backend to start FL with selected type
+}
+
+function showWarn(msg) {
+  const warn = document.getElementById('warn');
+  warn.innerText = msg;
+  warn.classList.add('active');
+  setTimeout(() => warn.classList.remove('active'), 3000);
+}
+// Attach navigation to nav buttons
+window.showPage = showPage;
+window.startFL = startFL;

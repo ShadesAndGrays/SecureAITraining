@@ -1,32 +1,193 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="index.css"> 
+    <link rel="stylesheet" href="index.css" />
     <title>Feduntu</title>
   </head>
   <body>
-    <div id="root">
-      <h1> Feduntu</h1>
+    <h1>Feduntu</h1>
+    <nav>
+      <button onclick="showPage('proposerPage')">Proposer</button>
+      <button onclick="showPage('participantPage')">Participant</button>
+      <button onclick="showPage('dashboardPage')">Dashboard</button>
+    </nav>
 
-        <div id="account">
-        </div>
-
-        <div id="warn" ></div>
-        <p>
-          Register to participate in the Blockchain Federated Learning Process
-        </p>
-
-        <button id="connectWalletBtn">
-          Connect Wallet
-        </button>
-
-        <button handleRegister()>
-          Register on Blockchain
-        </button>
-
+    <!-- Proposer Page -->
+    <div id="proposerPage" style="display: none">
+      <h2>Configurations</h2>
+      <form id="flConfigForm">
+        <label for="flType">Select a task type:</label>
+        <select id="flType" name="flType">
+          <option value="classification">Classification</option>
+          <option value="regression">Regression</option>
+          <option value="cnn">CNN</option></select
+        ><br /><br />
+        <label for="numClients">Number of Clients:</label>
+        <input
+          type="number"
+          id="numClients"
+          name="numClients"
+          min="2"
+          max="100"
+          value="4"
+        /><br /><br />
+        <label for="epochs">Epochs/Rounds:</label>
+        <input
+          type="number"
+          id="epochs"
+          name="epochs"
+          min="1"
+          max="100"
+          value="5"
+        /><br /><br />
+        <label for="batchSize">Batch Size:</label>
+        <input
+          type="number"
+          id="batchSize"
+          name="batchSize"
+          min="1"
+          max="100"
+          value="10"
+        /><br /><br />
+        <button type="submit">Start Federated Learning</button>
+      </form>
+      <div id="proposerStatus"></div>
     </div>
-    <script type="module" src="index.js"></script>
+
+    <!-- Participant Page -->
+    <div id="participantPage" style="display: none">
+      <h2>Participant Dashboard</h2>
+      <div id="praticipantAccount"></div>
+      <button id="registerBtn">Register on Blockchain</button>
+      <button id="connectWalletBtn">Connect Wallet</button>
+
+      <div id="participantSection" class="dashboardContent">
+        <table>
+          <tbody>
+            <thead>
+              <th>
+                Participants
+              </th>
+            </thead>
+            <tr>
+              <td>0x00000000000000000000001</td>
+            </tr>
+            <tr>
+              <td>0x00000000000000000000002</td>
+            </tr>
+            <tr>
+              <td>0x00000000000000000000003</td>
+            </tr>
+            <tr>
+              <td>0x00000000000000000000004</td>
+            </tr>
+            <tr>
+              <td>0x00000000000000000000005</td>
+            </tr>
+            <tr>
+              <td>0x00000000000000000000006</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" style="display: none">
+      <h2>Federated Learning Dashboard</h2>
+      <div class="dashboardContent">
+        <h1>Global Stats</h1>
+        <table>
+          <tbody>
+            <tr>
+              <th>Model Type</th>
+              <th>CurrentRound</th>
+              <th>Number of Clients</th>
+              <th>Block Height</th>
+              <th>Global Accuracy</th>
+              <th>Global Loss</th>
+              <th>Proposer</th>
+              <th>Reward Pool</th>
+              <th>Global Model IPFS</th>
+            </tr>
+          </tbody>
+          <tr>
+            <td>Classification</td>
+            <td>3</td>
+            <td>10</td>
+            <td>5001</td>
+          </tr>
+        </table>
+
+        <h2>Current Participants</h2>
+        <table>
+          <thead>
+            <th>Client</th>
+            <th>Status</th>
+            <th>Accuracy</th>
+            <th>Last Updates</th>
+            <th>Training Loss</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Client 1</td>
+              <td>Idle</td>
+              <td>0.98</td>
+              <td>10/10/2025</td>
+              <td>0.3</td>
+            </tr>
+            <tr>
+              <td>0x0000000000000000000003</td>
+              <td>Idle</td>
+              <td>0.83</td>
+              <td>10/10/2025</td>
+              <td>120</td>
+            </tr>
+            <tr>
+              <td>0x0000000000000000000004</td>
+              <td>Active</td>
+              <td>pending</td>
+              <td>9/10/2025</td>
+              <td>pending</td>
+            </tr>
+            <tr>
+              <td>0x0000000000000000000005</td>
+              <td>Offline</td>
+              <td>pending</td>
+              <td>na</td>
+              <td>pending</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="dashboardContent">
+        <h2>Local Stats</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Accuracy</th>
+              <th>Last Updates</th>
+              <th>Training Loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0x4275284375029847523491</td>
+              <td>Idle</td>
+              <td>na</td>
+              <td>na</td>
+              <td>na</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="warn"></div>
   </body>
+  <script type="module" src="index.js"></script>
 </html>
