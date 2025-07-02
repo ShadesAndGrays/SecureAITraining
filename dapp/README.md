@@ -23,11 +23,3 @@ npm run dev
 
 ```
 This should start up the dapp on port [5173](http://localhost:5173)
-
-Secondly, run the python application on port 
-
-```bash
-cd scripts
-flask --app flasker run --debug
-```
-This should start up the python on port **5000**

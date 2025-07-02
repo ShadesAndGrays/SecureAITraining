@@ -1,10 +1,14 @@
 ## DAPP
 
 - [x] Dapp landing page setup
-- [x] Local python server setup
 - [x] Authentication and authorization using Wallet key
 - [ ] dashboard monitoring training progress
 - [ ] Error handling and user notification
+
+## python server
+- [x] Initial setup
+- [ ] Worker API 
+- [ ] Aggregator API
 
 ## BLOCKCHAIN
 - [x] Smart contract deployment script
@@ -17,7 +21,7 @@
 ## SMART CONTRACT
 
 - [x] Client selection
-- [ ] IPFS hast stroage selection
+- [ ] IPFS hash stroage selection
 - [ ] Model update, submission and validation
 - [ ] Incentive/reward mechanism for participants
 - [ ] Upgradability Strategy
@@ -34,6 +38,7 @@
 ## INFRASTRUCTRE/ Deployment
 - [ ] Dockerization of all components
   - [ ] DAPP
+  - [ ] Python Backend
   - [ ] Blockchain
   - [ ] Smart Contracts
   - [ ] Federated learning
