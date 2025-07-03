@@ -12,12 +12,13 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row  # use column names
     return conn
 
-
-
-# @app.route('/calculate', methods=['GET'])
-# @cross_origin(origin='*')
+@app.route('/propose', methods=['POST'])
+@cross_origin(origin='*')
+def propose():
+    return jsonify({"message":"Success"})
 
 @app.route('/heartbeat', methods=['GET'])
+@cross_origin(origin='*')
 def check_health():
     return "To the beat of the drum"
 

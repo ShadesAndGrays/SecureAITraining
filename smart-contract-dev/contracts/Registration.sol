@@ -12,11 +12,15 @@ contract Registration {
     owner = msg.sender;
   }
 
+  function getRegistrants() public view returns (address[] memory){
+   return registrants;
+  }
+
   /// @notice Returns random registrants
   /// @param count number of registants to be returned
   function getRandomRegistrant(uint count) public view returns (address[] memory){
-    require(count <= registrants.length);
-    require(count < 256); // max block stored
+    require(count <= registrants.length,"Failed Random Registrant: Count exceeds amount registered");
+    require(count < 256,"Failed Random Registrant: Count exceeds max block limit"); // max block stored
     address [] memory pool = registrants;
     address[] memory selected = new address[](count);
     uint n = pool.length;

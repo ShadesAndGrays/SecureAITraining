@@ -7,6 +7,7 @@
 
 ## python server
 - [x] Initial setup
+- [x] Proposer API
 - [ ] Worker API 
 - [ ] Aggregator API
 

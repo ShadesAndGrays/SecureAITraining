@@ -2,16 +2,23 @@ const hre = require("hardhat");
 
 // scripts/register.js
 async function main() {
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
   const myContract = await hre.ethers.getContractAt("Registration", contractAddress);
-  const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  // const txResult = await myContract.register("0xE1f69F3ca3D2983cb622458b405024daA934aa24");
-  // console.log(txResult);
-  const result = await myContract.isValid(account)
-  // const result = await myContract.isValid("0xE1f69F3ca3D2983cb622458b405024daA934aa24");
-  // const result = await myContract.getOwner();
+  const accounts = await hre.ethers.getSigners();
+  const randomAccounts = accounts.slice(2, 10);
+
+  for (const account of randomAccounts) {
+    // Connect contract to the current account
+    const tx = await myContract.register(account.address);
+    await tx.wait();
+    console.log(`Registered: ${account.address}`);
+  }
+  // result = await myContract.getOwner();
+  // result = await myContract.getRandomRegistrant(5)
   console.log(result);
 
+const blockNumber = await hre.ethers.provider.getBlockNumber();
+console.log("Current block number:", blockNumber);
 }
 
 main().catch((error) => {

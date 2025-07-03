@@ -8,6 +8,17 @@
   </head>
   <body>
     <h1>Feduntu</h1>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        padding-bottom: 20px;
+      "
+    >
+      <button id="connectWalletBtn">Connect Wallet</button>
+    </div>
     <nav>
       <button onclick="showPage('proposerPage')">Proposer</button>
       <button onclick="showPage('participantPage')">Participant</button>
@@ -16,11 +27,11 @@
 
     <!-- Proposer Page -->
     <div id="proposerPage" style="display: none">
-      <h2>Configurations</h2>
+      <h2>FL Configurations</h2>
       <form id="flConfigForm">
         <label for="flType">Select a task type:</label>
         <select id="flType" name="flType">
-          <option value="classification">Classification</option>
+          <option value="spam_classification">Spam Classification</option>
           <option value="regression">Regression</option>
           <option value="cnn">CNN</option></select
         ><br /><br />
@@ -51,7 +62,12 @@
           max="100"
           value="10"
         /><br /><br />
-        <button type="submit">Start Federated Learning</button>
+        <button type="submit" id="proposeSubmitBtn">
+          Start Federated Learning
+        </button>
+        <button type="button" id="deactivateRoundBtn" style="display: none">
+          Deactivate Round
+        </button>
       </form>
       <div id="proposerStatus"></div>
     </div>
@@ -61,16 +77,13 @@
       <h2>Participant Dashboard</h2>
       <div id="praticipantAccount"></div>
       <button id="registerBtn">Register on Blockchain</button>
-      <button id="connectWalletBtn">Connect Wallet</button>
 
       <div id="participantSection" class="dashboardContent">
         <table>
-          <tbody>
-            <thead>
-              <th>
-                Participants
-              </th>
-            </thead>
+          <thead>
+            <th>Participants</th>
+          </thead>
+          <tbody id="dashboardDataParticipantList">
             <tr>
               <td>0x00000000000000000000001</td>
             </tr>
@@ -100,39 +113,55 @@
       <div class="dashboardContent">
         <h1>Global Stats</h1>
         <table>
-          <tbody>
-            <tr>
+          <thead>
               <th>Model Type</th>
+              <th>Proposer</th>
+              <th>Global Model IPFS</th>
+
+          </thead>
+          <tbody>
+              <td>Classification</td>
+              <td id="dashboardDataProposer">13</td>
+              <td id="dashboardDataGlobalModel">15</td>
+
+          </tbody>
+        </table>
+
+        <table>
+          <thead>
+            <tr>
               <th>CurrentRound</th>
               <th>Number of Clients</th>
               <th>Block Height</th>
               <th>Global Accuracy</th>
               <th>Global Loss</th>
-              <th>Proposer</th>
               <th>Reward Pool</th>
-              <th>Global Model IPFS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="dashboardDataCurrentRound">1</td>
+              <td id="dashboardDataNoOfClients">10</td>
+              <td id="dashboardDataBlockHeight">5001</td>
+              <td>N/A</td>
+              <td>N/A</td>
+              <td>N/A</td>
             </tr>
           </tbody>
-          <tr>
-            <td>Classification</td>
-            <td>3</td>
-            <td>10</td>
-            <td>5001</td>
-          </tr>
         </table>
 
         <h2>Current Participants</h2>
         <table>
           <thead>
-            <th>Client</th>
+            <th>Client Address</th>
             <th>Status</th>
             <th>Accuracy</th>
             <th>Last Updates</th>
             <th>Training Loss</th>
           </thead>
-          <tbody>
+          <tbody id="currentParticipants">
             <tr>
-              <td>Client 1</td>
+              <td>0x0000000000000000000002</td>
               <td>Idle</td>
               <td>0.98</td>
               <td>10/10/2025</td>
@@ -156,7 +185,7 @@
               <td>0x0000000000000000000005</td>
               <td>Offline</td>
               <td>pending</td>
-              <td>na</td>
+              <td>N/A</td>
               <td>pending</td>
             </tr>
           </tbody>
@@ -167,7 +196,7 @@
         <table>
           <thead>
             <tr>
-              <th>Client</th>
+              <th>Address</th>
               <th>Status</th>
               <th>Accuracy</th>
               <th>Last Updates</th>
@@ -176,17 +205,33 @@
           </thead>
           <tbody>
             <tr>
-              <td>0x4275284375029847523491</td>
+              <td id="dashboardDataUserAddress">N/A</td>
               <td>Idle</td>
-              <td>na</td>
-              <td>na</td>
-              <td>na</td>
+              <td>N/A</td>
+              <td>N/A</td>
+              <td>N/A</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
+    <div style="display: flex;column-gap: 10px; box-shadow: 0 0 10px #00000011; margin: 20px; padding-left: 5px; padding-right: 5px; position: fixed; right: 0; bottom: 0;">
+
+      <p id="countDisplay">Count: 0</p>
+      <button
+        id="countIncrement"
+        style="
+          align-self: center;
+          height: 25px;
+          width: 25px;
+          font-size: small;
+        "
+      >
+        +
+      </button>
+    </div>
+    <div id="accountAddress">0x000000000</div>
     <div id="warn"></div>
   </body>
   <script type="module" src="index.js"></script>

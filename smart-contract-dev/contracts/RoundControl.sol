@@ -25,12 +25,6 @@ contract Round {
         }
     }
 
-    // function addParticipant(address participant) private {
-    //     require(!isParticipant[participant], "Failed AddParticipant: Participant is already registered");
-    //     participants.push(participant);
-    //     isParticipant[participant] = true;
-    // }
-
     function isRegistered(address participant) public view returns (bool) {
         return isParticipant[participant];
     }
@@ -41,6 +35,9 @@ contract Round {
             cids[i] = participantCid[participants[i]];
         }
         return cids;
+    }
+    function getParticipants() public view returns (address[] memory){
+        return participants;
     }
 
     function Aggregate(string memory _nextRoundCid) public {
@@ -54,8 +51,8 @@ contract Round {
 }
 
 contract RoundControl {
-    uint256 private currentRoundId;
-    bool private active;
+    uint256 public currentRoundId;
+    bool public active;
     address public owner;
     string private initialGlobalModelCid;
     Registration private registrationContract;
@@ -78,12 +75,16 @@ contract RoundControl {
         registrationContract = Registration(_registrationContract);
     }
 
+    function setRoundActive(bool _active) public onlyOwner {
+        active = _active;
+    }
+
     function getRound(uint256 _roundId) public view returns (address) {
         return roundMapping[_roundId];
     }
 
-    function createRound(uint64 _noOfParticipants) internal returns (uint256) {
-        require(active, "Failed Create:  Current Round is not active");
+    function createRound(uint64 _noOfParticipants) public onlyOwner returns (uint256) {
+        require(!active, "Failed Create: Round is Currently active");
 
         uint256 roundId = currentRoundId;
         address[] memory participants = registrationContract.getRandomRegistrant(_noOfParticipants);  // Get random of registrants
@@ -122,9 +123,9 @@ contract RoundControl {
         uint64 _noOfParticipants
     ) public onlyOwner returns (uint256) {
         require(!active, "Failed Start: Round is currently running");
+        createRound(_noOfParticipants);
         active = true;
         emit RoundStarted(currentRoundId);
-        createRound(_noOfParticipants);
         return currentRoundId;
     }
 

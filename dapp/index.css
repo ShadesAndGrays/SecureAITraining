@@ -25,10 +25,17 @@ body {
 table {
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 20px;
   width: 80%;
   border-collapse: collapse;
+  /* border-style: hidden; */
   border-radius: 16px;
   box-shadow: 1px 20px 20px #00000011;
+  overflow: hidden;
+  /* background-color: #00000001; */
+
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 #proposerPage{
   box-shadow: 1px 20px 20px #00000011;
@@ -44,30 +51,83 @@ th {
   height: 30px;
   background-color: #1fa88b;
   text-align: center;
+  overflow: hidden;
 }
-tr{
-  border-bottom-left-radius: 16px ;
-  border-bottom: 1px solid #d00;
-
+tbody{
+  /* background-color: red; */
+  overflow: scroll;
+  height: 10px;
 }
 td {
-  /* border-bottom-left-radius: 16px ; */
-  /* border-bottom: 1px solid #0d0; */
+  background-color: transparent;
   padding: 10px;
+  overflow: hidden;
+}
+tb{
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  overflow: hidden;
 }
 
+tr{
+  overflow: hidden;
+  background-color: transparent;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+table tr:last-child td:first-child{
+  border-bottom-left-radius:16px ;
+}
+table tr:last-child td:last-child{
+  border-bottom-right-radius:16px ;
+}
 #warn {
   margin: auto;
   background-color: #fff;
   color: red;
   padding: 20px;
-  box-shadow: 1px 20px 20px #00000011;
-  border-radius: 16px;
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translate(-50%);
+  border-left: 15px solid red;
+  box-shadow: 1px 20px 20px #00000022;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  position: fixed;
+  top: 10px;
+  right: 0;
+  opacity: 0;
+  transform: translate(20%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
   
+}
+#warn.show {
+  opacity:  1;
+  transform: translate(0);
+}
+
+#warn.positive {
+  color: green;
+  border-left: 15px solid greenyellow;
+}
+
+#accountAddress{
+  position: fixed;
+  left:0;
+  top:0;
+  margin-top:20px;
+  padding: 20px;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  background-color: #fff;
+  color: #0e6570;
+  padding: 20px;
+  border-right: 15px solid #1fa88b;
+  box-shadow: 1px 20px 20px #00000022;
+  opacity: 0;
+  transform: translate(-20%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#accountAddress.show {
+  opacity:  1;
+  transform: translate(0);
 }
 
 button {
@@ -88,6 +148,11 @@ button:hover {
 button:active {
   color: #fff;
   background-color: #0e6570;
+}
+button:disabled {
+  color: #fff;
+  background-color: #555;
+  border: 1px solid #555;
 }
 
 label {
