@@ -4,13 +4,20 @@ import CountArtifact from "./Contracts/Count.json";
 import RegistrationArtifact from "./Contracts/Registration.json";
 import RoundArtificat from "./Contracts/Round.json";
 import RoundControlArtificat from "./Contracts/RoundControl.json";
+// import { PinataSDK } from "pinata";
 
+const count_contract_address = import.meta.env.VITE_COUNT_CONTRACT_ADDRESS;
 const round_control_contract_address = import.meta.env
   .VITE_ROUND_CONTROL_CONTRACT_ADDRESS;
-const count_contract_address = import.meta.env.VITE_COUNT_CONTRACT_ADDRESS;
 const registration_contract_address = import.meta.env
   .VITE_REGISTRATION_CONTRACT_ADDRESS;
 
+// const pinata_jwt = import.meta.env.VITE_PINATA_JWT
+// const pinata_gateway = import.meta.env.VITE_PINATA_GATEWAY
+// const pinata = new PinataSDK({
+//   pinataJwt: pinata_jwt,
+//   pinataGateway: pinata_gateway,
+// });
 const warning = document.getElementById("warn");
 
 // Event Listeners
@@ -28,6 +35,10 @@ document
 document
   .getElementById("deactivateRoundBtn")
   .addEventListener("click", deactivateRound);
+
+document
+  .getElementById("testUploadBtn")
+  .addEventListener("click", testUploadFileToIPFS);
 
 let contracts = {};
 let connectedAccount;
@@ -70,6 +81,11 @@ if (window.ethereum) {
 
 // Connect to web3 on page load
 if (web3) {
+
+  console.log(`COUNT ADDRESS: ${count_contract_address}`)
+  console.log(`ROUND CONTROL ADDRESS: ${round_control_contract_address}`)
+  console.log(`REGISTRATION ADDRESS: ${registration_contract_address}`)
+
   load_registration_contract();
   load_count_contract();
   load_round_control();
@@ -281,14 +297,6 @@ export async function proposeTraining(e) {
   //   });
 }
 
-// Federated learning type selection for proposer
-// export function startFL(type) {
-//   document.getElementById(
-//     "proposerStatus"
-//   ).innerText = `Started federated learning: ${type}`;
-//   // TODO: Call backend to start FL with selected type
-// }
-
 function refreshRoundInfo() {
   contracts["RoundControl"].methods
     .getRound(currentRoundId)
@@ -338,3 +346,14 @@ setInterval(() => {
   toggleAccountAddress(connectedAccount ? connectedAccount.length != 0 : false);
   refreshRoundInfo();
 }, 2000);
+
+
+async function testUploadFileToIPFS(){
+  try {
+    const file = new File(["hello world!"], "hello.txt", { type: "text/plain" });
+    const upload = await pinata.upload.public.file(file);
+    console.log(upload);
+  } catch (error) {
+    console.log(error);
+  }
+}

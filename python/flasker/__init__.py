@@ -2,8 +2,18 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 import os
 import sqlite3
+from pinata.routes import pinata_bp
+
+if os.getenv('FLASK_ENV') == 'development':
+    from dotenv import load_dotenv
+    load_dotenv() # Load .env file only if in development
+    print("Running in Development")
+elif os.getenv('FLASK_ENV') == 'production':
+    print("Running in production")
+    pass
 
 app = Flask(__name__, instance_relative_config=True)
+app.register_blueprint(pinata_bp)
 CORS(app, support_credentials=True)
 DATABASE = os.path.join(app.instance_path, 'flaskr.sqlite')
 

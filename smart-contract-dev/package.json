@@ -5,7 +5,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "npx hardhat compile",
-    "launch:dev": "npx hardhat node"
+    "launch:dev": "npx hardhat node",
+    "setup:clean":"rm artifacts cache ./ignition/deployments -rf",
+    "setup:deploy" : "npx hardhat ignition deploy ./ignition/modules/Deploy.ts --network localhost",
+    "setup:set_contracts" : "../dapp/scripts/get_contract.py",
+    "setup:register": "npx hardhat run scripts/register.js --network localhost ",
+    "setup:dev" : "npm run setup:deploy && npm run setup:set_contracts && npm run setup:register",
+    "setup:dev-fresh" : "npm run setup:clean && npm run setup:deploy && npm run setup:set_contracts && npm run setup:register"
   },
   "keywords": [],
   "author": "",

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "pinata": "^2.4.9",
     "web3": "^4.16.0"
   },
   "devDependencies": {

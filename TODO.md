@@ -3,10 +3,11 @@
 - [x] Dapp landing page setup
 - [x] Authentication and authorization using Wallet key
 - [x] dashboard monitoring training progress
-- [ ] Error handling and user notification
+- [x] Error handling and user notification
 
 ## python server
 - [x] Initial setup
+- [x] IPFS enpoint
 - [x] Proposer API
 - [ ] Worker API 
 - [ ] Aggregator API
@@ -22,7 +23,7 @@
 ## SMART CONTRACT
 
 - [x] Client selection
-- [ ] IPFS hash stroage selection
+- [x] IPFS hash stroage selection
 - [ ] Model update, submission and validation
 - [ ] Incentive/reward mechanism for participants
 - [ ] Upgradability Strategy
