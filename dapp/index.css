@@ -158,3 +158,18 @@ button:disabled {
 label {
   color: #0e6570;
 }
+
+#connectWalletBtn:disabled{
+  border-bottom-right-radius:0px ;
+  border-top-right-radius:0px ;
+}
+#disconnectWalletBtn.show{
+  display: block;
+  width: 30px;
+  border-bottom-left-radius:0px ;
+  border-top-left-radius:0px ;
+
+}
+#disconnectWalletBtn{
+  display: none;
+}

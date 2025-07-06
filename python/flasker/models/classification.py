@@ -10,6 +10,7 @@ import numpy as np
 import joblib
 import os
 from sklearn.metrics import accuracy_score, f1_score, classification_report
+from .model import BaseModel
 
 
 class SpacyPreprocessor(BaseEstimator, TransformerMixin):
@@ -28,12 +29,12 @@ class SpacyPreprocessor(BaseEstimator, TransformerMixin):
         tokens = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct]
         return ' '.join(tokens)
 
-class SpamClassificationHandler:
+class SpamClassificationHandler(BaseModel):
     # Handle loads the model from a file downloaded from ipfs
     # Check the download folder for the model 
     def __init__(self, model_path=None):
         if model_path and os.path.exists(model_path):
-            self.model = joblib.load(model_path)
+            self.set_parameters(model_path)
         else:
             print("Error: Failed to find model")
             self.model = MultinomialNB()
@@ -45,7 +46,14 @@ class SpamClassificationHandler:
             ('vectorizer_tfidf',self.vectorizer),
         ])
 
-    def load_dataset(self, dataset_path, size, client_id = 0):
+    def set_parameters(self,model_path):
+        self.model = joblib.load(model_path)
+        pass
+
+    def extract_parameters(self):
+        return self.model
+
+    def _load_dataset(self, dataset_path, size, client_id = 0):
         df = pd.read_csv(dataset_path)
         # Deterministically shuffle using client_id as seed
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -62,9 +70,9 @@ class SpamClassificationHandler:
         self.x = self.dataset['text']
         self.y = self.dataset['label'] 
 
-    def train(self, dataset_path, num_clients=1, client_id=0):
+    def train_model(self, dataset_path, num_clients=1, client_id=0):
         if dataset_path and os.path.exists(dataset_path):
-            self.load_dataset(dataset_path, num_clients, client_id)
+            self._load_dataset(dataset_path, num_clients, client_id)
         else:
             print("datapath does not exist")
             return
@@ -78,7 +86,7 @@ class SpamClassificationHandler:
             )
         print("Training Complete")
 
-    def evaluate(self, test_fraction=0.2):
+    def evaluate_model(self, test_fraction=0.2):
         # Use a held-out section of the dataset for testing
         test_size = max(1, int(len(self.dataset) * test_fraction))
         test_df = self.dataset.tail(test_size)
@@ -93,9 +101,9 @@ class SpamClassificationHandler:
         print(report)
         return {'accuracy': acc, 'f1': f1, 'report': report}
 
-    def extract_updates(self):
-        # Return model state dict (weights)
-        return self.model.state_dict()
+    # def extract_parameters(self):
+    #     # Return model state dict (weights)
+    #     return self.model.state_dict()
 
     def save_model(self, save_path):
         joblib.dump(self.model, save_path)
@@ -106,12 +114,11 @@ class SpamClassificationHandler:
 # handler.save_updates('updates/update_1.pt')
 
 def main():
-    dataset_path = "../data/classification_dataset/combined_data.csv"
+    dataset_path = "data/classification_dataset/combined_data.csv"
     num_clients = 4  # Set the number of clients/sections here
-    unique_id = 0    # Set the client id (0 to num_clients-1)
     model = SpamClassificationHandler()
-    model.train(dataset_path, num_clients=num_clients, client_id=0)
-    model.evaluate()
+    model.train_model(dataset_path, num_clients=num_clients, client_id=0)
+    model.evaluate_model()
   
   #ExtractWeights
   #SaveOrSendWeights

@@ -13,12 +13,11 @@
         display: flex;
         flex-direction: row;
         justify-content: center;
-        gap: 10px;
         padding-bottom: 20px;
       "
     >
       <button id="connectWalletBtn">Connect Wallet</button>
-      <button id="testUploadBtn">TestUpload</button>
+      <button id="disconnectWalletBtn">x</button>
     </div>
     <nav>
       <button onclick="showPage('proposerPage')">Proposer</button>
@@ -54,7 +53,7 @@
           max="100"
           value="5"
         /><br /><br />
-        <label for="batchSize">Batch Size:</label>
+        <!-- <label for="batchSize">Batch Size:</label>
         <input
           type="number"
           id="batchSize"
@@ -62,7 +61,7 @@
           min="1"
           max="100"
           value="10"
-        /><br /><br />
+        /><br /><br /> -->
         <button type="submit" id="proposeSubmitBtn">
           Start Federated Learning
         </button>

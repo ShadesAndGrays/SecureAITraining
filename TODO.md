@@ -24,13 +24,16 @@
 
 - [x] Client selection
 - [x] IPFS hash stroage selection
-- [ ] Model update, submission and validation
+- [ ] Model update
+- [x] Model submission
+- [ ] Model validation
 - [ ] Incentive/reward mechanism for participants
 - [ ] Upgradability Strategy
 - [ ] Security review and testing
 
 ## FEDERATED LEARNING 
 - [ ] Data processing pipeline
+- [x] Model Selction
 - [ ] Model aggregation 
 - [ ] Privacy preserving techniquies
   - [ ] Differential privacy

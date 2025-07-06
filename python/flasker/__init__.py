@@ -2,7 +2,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 import os
 import sqlite3
+import pinata.routes as pin
 from pinata.routes import pinata_bp
+from flasker.models.model import BaseModel
+from flasker.models.classification import SpamClassificationHandler
 
 if os.getenv('FLASK_ENV') == 'development':
     from dotenv import load_dotenv
@@ -25,7 +28,22 @@ def get_db_connection():
 @app.route('/propose', methods=['POST'])
 @cross_origin(origin='*')
 def propose():
-    return jsonify({"message":"Success"})
+    # create model
+    data = request.json
+    fl_type = data.get('flType')
+    model:BaseModel = {}
+    match fl_type:
+        case 'spam_classification':
+            model = SpamClassificationHandler()
+        case _:
+            return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
+    # Extrart parameters
+    file_path = 'download/temp/model.joblib'
+    model.save_model(file_path)
+    # Upload parameters
+    cid = pin.pinata_upload(file_path)
+    # return cid
+    return jsonify({"message":"Success","cid":cid})
 
 @app.route('/heartbeat', methods=['GET'])
 @cross_origin(origin='*')

@@ -52,6 +52,7 @@ contract Round {
 
 contract RoundControl {
     uint256 public currentRoundId;
+    uint256 public numberOfRounds;
     bool public active;
     address public owner;
     string private initialGlobalModelCid;
@@ -73,6 +74,9 @@ contract RoundControl {
         owner = msg.sender;
         initialGlobalModelCid = _initialGlobalModelCid;
         registrationContract = Registration(_registrationContract);
+    }
+    function setInitialGlobalModleCid(string memory _initialGlobalModelCid) public onlyOwner {
+        initialGlobalModelCid = _initialGlobalModelCid;
     }
 
     function setRoundActive(bool _active) public onlyOwner {

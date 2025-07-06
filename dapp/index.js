@@ -24,6 +24,10 @@ const warning = document.getElementById("warn");
 document
   .getElementById("connectWalletBtn")
   .addEventListener("click", requestAccounts);
+
+document
+  .getElementById("disconnectWalletBtn")
+  .addEventListener("click", disconnectAccount);
 document
   .getElementById("registerBtn")
   .addEventListener("click", handleRegister);
@@ -35,10 +39,6 @@ document
 document
   .getElementById("deactivateRoundBtn")
   .addEventListener("click", deactivateRound);
-
-document
-  .getElementById("testUploadBtn")
-  .addEventListener("click", testUploadFileToIPFS);
 
 let contracts = {};
 let connectedAccount;
@@ -63,8 +63,13 @@ function toggleAccountAddress(on = true) {
   let accountAddress = document.getElementById("accountAddress");
   if (on) {
     accountAddress.classList.add("show");
+
+    document.getElementById("connectWalletBtn").disabled = true;
+    document.getElementById("disconnectWalletBtn").classList.add("show");
   } else {
     accountAddress.classList.remove("show");
+    document.getElementById("connectWalletBtn").disabled = false;
+    document.getElementById("disconnectWalletBtn").classList.remove("show");
   }
 }
 
@@ -81,10 +86,9 @@ if (window.ethereum) {
 
 // Connect to web3 on page load
 if (web3) {
-
-  console.log(`COUNT ADDRESS: ${count_contract_address}`)
-  console.log(`ROUND CONTROL ADDRESS: ${round_control_contract_address}`)
-  console.log(`REGISTRATION ADDRESS: ${registration_contract_address}`)
+  console.log(`COUNT ADDRESS: ${count_contract_address}`);
+  console.log(`ROUND CONTROL ADDRESS: ${round_control_contract_address}`);
+  console.log(`REGISTRATION ADDRESS: ${registration_contract_address}`);
 
   load_registration_contract();
   load_count_contract();
@@ -135,14 +139,16 @@ async function load_count_contract() {
     });
 
   subscription.on("data", (event) => {
-    let counter = document.getElementById("countDisplay");
-    const val = Number(event.returnValues.count);
-    console.log(val);
-    counter.innerText = `Count: ${val}`;
+    refreshCount(event.returnValues.count);
   });
 
   let counter = document.getElementById("countDisplay");
   const val = Number(await contracts["Count"].methods.count().call());
+  counter.innerText = `Count: ${val}`;
+}
+async function refreshCount(count) {
+  let counter = document.getElementById("countDisplay");
+  const val = Number(count);
   counter.innerText = `Count: ${val}`;
 }
 
@@ -211,7 +217,7 @@ async function deactivateRound() {
 
 async function requestAccounts() {
   if (web3 === null) {
-    console.log("Web3 is not initialzed");
+    setWarning("Web3 is not initialzed");
     return;
   }
 
@@ -231,6 +237,14 @@ async function requestAccounts() {
     5
   )}...${connectedAccount.slice(-5)}</b>`;
   setWarning(`initialized Account: ${connectedAccount}`, true);
+}
+
+async function disconnectAccount() {
+  if (web3 === null) {
+    setWarning("Web3 is not initialzed");
+    return;
+  }
+  connectedAccount = null;
 }
 
 async function handleRegister() {
@@ -266,35 +280,40 @@ export async function proposeTraining(e) {
   e.preventDefault();
   document.getElementById("proposeSubmitBtn").disabled = true;
   const form = e.target;
-  const data = Object.fromEntries(new FormData(form).entries());
-  console.log(data);
-  console.log(JSON.stringify(data));
+  const formData = Object.fromEntries(new FormData(form).entries());
 
   try {
-    const result = await contracts["RoundControl"].methods
-      .startRound(data["numClients"])
-      .send({
-        from: connectedAccount,
+    await fetch(`/api/propose`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => response.json())
+      .then(async (data) => {
+        console.log(data);
+        setWarning(`upload model ${data.cid}`, true);
+
+        await contracts["RoundControl"].methods
+          .setInitialGlobalModleCid(data.cid)
+          .send({
+            from: connectedAccount,
+          });
+
+        console.log(formData.numClients);
+        await contracts["RoundControl"].methods
+          .startRound(formData.numClients)
+          .send({
+            from: connectedAccount,
+          });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
       });
-    console.log(result);
   } catch (err) {
     setWarning("Failed Proposal" + err);
     document.getElementById("proposeSubmitBtn").disabled = false;
   }
-
   // await fetch(`/api/heartbeat`)
-  // await fetch(`/api/propose`, {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(data),
-  // })
-  //   .then((response) => response.json())
-  //   .then((data) => {
-  //     console.log(data);
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error:", error);
-  //   });
 }
 
 function refreshRoundInfo() {
@@ -337,6 +356,7 @@ function refreshRoundInfo() {
 window.showPage = showPage;
 // window.startFL = startFL;
 
+// Manual refresh for interface
 setInterval(() => {
   web3.eth.getBlockNumber().then((response) => {
     let blockHeight = document.getElementById("dashboardDataBlockHeight");
@@ -345,15 +365,8 @@ setInterval(() => {
   // Show account
   toggleAccountAddress(connectedAccount ? connectedAccount.length != 0 : false);
   refreshRoundInfo();
+  contracts["Count"].methods
+    .count()
+    .call()
+    .then((value) => refreshCount(value));
 }, 2000);
-
-
-async function testUploadFileToIPFS(){
-  try {
-    const file = new File(["hello world!"], "hello.txt", { type: "text/plain" });
-    const upload = await pinata.upload.public.file(file);
-    console.log(upload);
-  } catch (error) {
-    console.log(error);
-  }
-}
