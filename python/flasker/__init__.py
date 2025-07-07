@@ -4,6 +4,7 @@ import os
 import sqlite3
 import pinata.routes as pin
 from pinata.routes import pinata_bp
+from worker.routes import worker_bp
 from flasker.models.model import BaseModel
 from flasker.models.classification import SpamClassificationHandler
 
@@ -17,6 +18,7 @@ elif os.getenv('FLASK_ENV') == 'production':
 
 app = Flask(__name__, instance_relative_config=True)
 app.register_blueprint(pinata_bp)
+app.register_blueprint(worker_bp)
 CORS(app, support_credentials=True)
 DATABASE = os.path.join(app.instance_path, 'flaskr.sqlite')
 
@@ -38,7 +40,7 @@ def propose():
         case _:
             return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
     # Extrart parameters
-    file_path = 'download/temp/model.joblib'
+    file_path = f'download/temp/{fl_type}.joblib'
     model.save_model(file_path)
     # Upload parameters
     cid = pin.pinata_upload(file_path)

@@ -6,6 +6,9 @@
         "eip155Block": 0,
         "eip158Block": 0,
         "byzantiumBlock": 0,
+        "contractSizeLimit": 2147483647,
+        "londonBlock": 0,      
+        "zeroBaseFee": true, 
         "qbft": {
             "epochlength": 30000,
             "blockperiodseconds": 5,

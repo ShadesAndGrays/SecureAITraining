@@ -9,9 +9,6 @@ from abc import ABC, abstractmethod
 
 class BaseModel(ABC):
 
-  def get_status():
-    pass
-
   @abstractmethod
   def set_parameters(self,param):
     pass

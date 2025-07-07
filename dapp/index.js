@@ -210,6 +210,13 @@ async function deactivateRound() {
       from: connectedAccount,
     });
     setWarning("Round deactiavted sucessfully", true);
+    const proposeSubmitBtn = document.getElementById("proposeSubmitBtn");
+    proposeSubmitBtn.innerText = "Start Federated Learning";
+    const form = document.getElementById("flConfigForm");
+    Array.from(form.elements).forEach((el) => (el.disabled = false));
+    const deactivateRoundBtn = document.getElementById("deactivateRoundBtn");
+    deactivateRoundBtn.disabled = true;
+    deactivateRoundBtn.style.display = "none";
   } catch (err) {
     setWarning("Failed to deactiveate Round: " + err);
   }
@@ -222,6 +229,7 @@ async function requestAccounts() {
   }
 
   // await window.ethereum.request({ method: "eth_requestAccounts" });
+  // web3 = new Web3(window.ethereum) // Reinitialize web3
   let allAccounts = await web3.eth.getAccounts();
   if (allAccounts.length == 0) {
     setWarning("No Accounts found");
@@ -276,7 +284,7 @@ export function showPage(pageId) {
 // Show proposer page by default on load
 showPage("proposerPage");
 
-export async function proposeTraining(e) {
+async function proposeTraining(e) {
   e.preventDefault();
   document.getElementById("proposeSubmitBtn").disabled = true;
   const form = e.target;
@@ -305,9 +313,11 @@ export async function proposeTraining(e) {
           .send({
             from: connectedAccount,
           });
+        await startTraining(formData.numClients, formData.flType, data.cid);
       })
       .catch((error) => {
         console.error("Error:", error);
+        document.getElementById("proposeSubmitBtn").disabled = false;
       });
   } catch (err) {
     setWarning("Failed Proposal" + err);
@@ -316,16 +326,35 @@ export async function proposeTraining(e) {
   // await fetch(`/api/heartbeat`)
 }
 
+async function startTraining(count, flType, cid) {
+  try {
+    const form = new FormData();
+    form.append("count", count);
+    form.append("flType", flType);
+    form.append("cid", cid);
+    form.append("round", 1);
+    const formData = Object.fromEntries(form.entries());
+
+    await fetch(`/api/worker/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+  } catch (err) {
+    console.log(err);
+    setWarning("Failed Training Initiation" + err);
+  }
+}
+
 function refreshRoundInfo() {
+  let globalModel = document.getElementById("dashboardDataGlobalModel");
+  let noOfParticipants = document.getElementById("dashboardDataNoOfClients");
+  let currentParticipants = document.getElementById("currentParticipants");
+  // if (currentRoundId)
   contracts["RoundControl"].methods
     .getRound(currentRoundId)
     .call()
     .then((response) => {
-      let globalModel = document.getElementById("dashboardDataGlobalModel");
-      let noOfParticipants = document.getElementById(
-        "dashboardDataNoOfClients"
-      );
-      let currentParticipants = document.getElementById("currentParticipants");
       if (Number(response) == 0) {
         globalModel.innerText = "N/A";
         noOfParticipants.innerText = "N/A";
@@ -351,6 +380,11 @@ function refreshRoundInfo() {
           });
       }
     });
+  // else {
+  //   globalModel.innerText = "N/A";
+  //   noOfParticipants.innerText = "N/A";
+  //   currentParticipants.innerHTML = "";
+  // }
 }
 
 window.showPage = showPage;
@@ -370,3 +404,23 @@ setInterval(() => {
     .call()
     .then((value) => refreshCount(value));
 }, 2000);
+
+// async function sendSingedTransaction(contractAddress,contract_interaction){
+
+//    const transactionParameters = {
+//       nonce: await web3.eth.getTransactionCount(fromAddress, 'pending'), // Get the next nonce
+//       from: fromAddress, // The user's account
+//       to: contractAddress, // The address of the contract you're interacting with, or another EOA
+//       gas: 0, // Standard gas for simple ETH transfer, adjust for contract calls
+//       gasPrice: -1, // Get current gas price
+//       data: contract_interaction, // For contract interactions, this would be the encoded function call
+//     };
+
+//     const txHash = await web3.request({
+//       method: 'eth_sendTransaction',
+//       params: [transactionParameters],
+//     });
+
+//     const receipt = await web3.eth.waitForTransactionReceipt(txHash);
+
+// }

@@ -16,8 +16,7 @@ pinata_jwt = os.getenv("PINATA_JWT")
 @pinata_bp.route('/ipfs-download/<string:cid>', methods=['GET'])
 @cross_origin(origin='*')
 def download(cid):
-    pinata_download(cid)
-    pass
+    return pinata_download(cid)
 
 
 @pinata_bp.route('/ipfs-upload', methods=['GET'])
@@ -32,12 +31,13 @@ def upload():
 def heartbeat():
     return 'good from ipfs' 
 
-def pinata_download(cid):
+def pinata_download(cid,path):
     url = f'https://{pinata_gateway}/ipfs/{cid}'
     response = requests.request("GET", url)
     response.raise_for_status()
-    print(response.text)
-    return response.text
+    with open(path,'wb') as f:
+        f.write(response.content)
+    return path
 
 
 def pinata_upload(file_path):

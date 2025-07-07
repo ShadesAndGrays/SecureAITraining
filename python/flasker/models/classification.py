@@ -36,7 +36,7 @@ class SpamClassificationHandler(BaseModel):
         if model_path and os.path.exists(model_path):
             self.set_parameters(model_path)
         else:
-            print("Error: Failed to find model")
+            print(f"Error: Failed to find model: {model_path}")
             self.model = MultinomialNB()
         
         self.preprocessor = SpacyPreprocessor() 
@@ -53,15 +53,15 @@ class SpamClassificationHandler(BaseModel):
     def extract_parameters(self):
         return self.model
 
-    def _load_dataset(self, dataset_path, size, client_id = 0):
+    def _load_dataset(self, dataset_path, chuch_parts, client_id = 0):
         df = pd.read_csv(dataset_path)
         # Deterministically shuffle using client_id as seed
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
         # Split into non-overlapping chunks
-        chunk_size = len(df) // size
+        chunk_size = len(df) // chuch_parts
         start = client_id * chunk_size
         # Last client takes the remainder if not divisible
-        if client_id == size - 1:
+        if client_id == chuch_parts - 1:
             end = len(df)
         else:
             end = start + chunk_size
@@ -70,9 +70,9 @@ class SpamClassificationHandler(BaseModel):
         self.x = self.dataset['text']
         self.y = self.dataset['label'] 
 
-    def train_model(self, dataset_path, num_clients=1, client_id=0):
+    def train_model(self, dataset_path, chuch_parts=1, client_id=0):
         if dataset_path and os.path.exists(dataset_path):
-            self._load_dataset(dataset_path, num_clients, client_id)
+            self._load_dataset(dataset_path, chuch_parts, client_id)
         else:
             print("datapath does not exist")
             return
@@ -107,6 +107,9 @@ class SpamClassificationHandler(BaseModel):
 
     def save_model(self, save_path):
         joblib.dump(self.model, save_path)
+        return save_path
+
+
 
 # Example usage:
 # handler = ClassificationHandler(model_path='downloaded_model.pt', input_dim=10, num_classes=2)
@@ -114,7 +117,7 @@ class SpamClassificationHandler(BaseModel):
 # handler.save_updates('updates/update_1.pt')
 
 def main():
-    dataset_path = "data/classification_dataset/combined_data.csv"
+    dataset_path = "data/classification_dataset/spam_data.csv"
     num_clients = 4  # Set the number of clients/sections here
     model = SpamClassificationHandler()
     model.train_model(dataset_path, num_clients=num_clients, client_id=0)
@@ -125,3 +128,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def simulate(numOfClients,model_path,dataset_path,current_round):
+    models:list[SpamClassificationHandler] = []
+    for _ in range(numOfClients):
+        m = SpamClassificationHandler(model_path)
+        models.append(m)
+    # training 
+    for client_id in range(numOfClients):
+        models[client_id].train_model(dataset_path,100*numOfClients,client_id)
+    # evaluation
+    for client_id in range(numOfClients):
+        print(current_round,": ", models[client_id].evaluate_model())
+
+    
+    # saving
+    saves = []
+    for client_id in range(numOfClients):
+        saves.append(models[client_id].save_model(f'download/temp/{client_id}_spam_classifier_{current_round}.joblib'))
+    return saves
+
