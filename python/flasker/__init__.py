@@ -5,6 +5,7 @@ import sqlite3
 import pinata.routes as pin
 from pinata.routes import pinata_bp
 from worker.routes import worker_bp
+from aggregator.routes import aggregator_bp
 from flasker.models.model import BaseModel
 from flasker.models.classification import SpamClassificationHandler
 
@@ -19,6 +20,7 @@ elif os.getenv('FLASK_ENV') == 'production':
 app = Flask(__name__, instance_relative_config=True)
 app.register_blueprint(pinata_bp)
 app.register_blueprint(worker_bp)
+app.register_blueprint(aggregator_bp)
 CORS(app, support_credentials=True)
 DATABASE = os.path.join(app.instance_path, 'flaskr.sqlite')
 

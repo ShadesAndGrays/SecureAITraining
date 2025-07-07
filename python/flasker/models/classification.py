@@ -40,18 +40,82 @@ class SpamClassificationHandler(BaseModel):
             self.model = MultinomialNB()
         
         self.preprocessor = SpacyPreprocessor() 
-        self.vectorizer = joblib.load('download/tfidf_vectorizer.joblib')
+        self.vectorizer = joblib.load('download/tfidf_vectorizer_old.joblib')
         self.preprocessor_pipeline = Pipeline([
             ('spacy_preprocessor',self.preprocessor),
             ('vectorizer_tfidf',self.vectorizer),
         ])
 
-    def set_parameters(self,model_path):
-        self.model = joblib.load(model_path)
-        pass
+    def set_parameters_from_file(self,model_parameters_path):
+        parameters = joblib.load(model_parameters_path)
+
+        if not isinstance(parameters, dict) or "class_count_" not in parameters or "feature_count_" not in parameters:
+             raise ValueError("Loaded parameters are not in the expected dictionary format.")
+        self.set_parameters(parameters)
+
+    def set_parameters(self,parameters):
+        class_log_prior, feature_log_prob = self.compute_mnb_params(parameters['class_count_'], parameters['feature_count_'], alpha=1.0)
+        self.model.class_count_ = parameters['class_count_']
+        self.model.feature_count_ = parameters['feature_count_']
+        self.model.class_log_prior_ = class_log_prior
+        self.model.feature_log_prob_ = feature_log_prob
+        self.model.classes_ = np.array([0,1])
+        
 
     def extract_parameters(self):
-        return self.model
+        return {
+            "class_count_": self.model.class_count_,
+            "feature_count_": self.model.feature_count_,
+        }
+
+    def save_parameters(self,save_path):
+        parameters = {
+            "class_count_": self.model.class_count_,
+            "feature_count_": self.model.feature_count_,
+        }
+        save_path = joblib.dump(parameters,save_path)
+        return save_path
+
+    def aggregate_mnb_models(self,client_stats):
+        total_class_count = None
+        total_feature_count = None
+
+        for i in client_stats:
+            class_count = i['class_count_']
+            feature_count = i['feature_count_']
+            if total_class_count is None:
+                total_class_count = class_count.copy()
+                total_feature_count = feature_count.copy()
+            else:
+                total_class_count += class_count
+                total_feature_count += feature_count
+
+        return total_class_count, total_feature_count
+
+    def compute_mnb_params(self,total_class_counts, total_feature_counts, alpha=1.0):
+        import numpy as np
+
+        class_log_prior = np.log(total_class_counts / total_class_counts.sum())
+
+        # Apply Laplace smoothing
+        smoothed_fc = total_feature_counts + alpha
+        smoothed_fc_sum = smoothed_fc.sum(axis=1, keepdims=True)
+        feature_log_prob = np.log(smoothed_fc / smoothed_fc_sum)
+
+        return class_log_prior, feature_log_prob
+
+    def build_global_model(self,total_class_count, total_feature_count, alpha=1.0):
+        model = MultinomialNB(alpha=alpha, fit_prior=True)
+
+        # Manually set the fitted attributes
+        model.class_count_ = total_class_count
+        model.feature_count_ = total_feature_count
+        model.class_log_prior_,model.feature_log_prob_ = self.compute_mnb_params(total_class_count, total_feature_count, alpha=1.0)
+
+        model.classes_ = np.arange(len(total_class_count))  # Assuming 0-based class labels
+
+        return model
+
 
     def _load_dataset(self, dataset_path, chuch_parts, client_id = 0):
         df = pd.read_csv(dataset_path)
@@ -70,19 +134,22 @@ class SpamClassificationHandler(BaseModel):
         self.x = self.dataset['text']
         self.y = self.dataset['label'] 
 
-    def train_model(self, dataset_path, chuch_parts=1, client_id=0):
+    def train_model(self, dataset_path="data/classification_dataset/spam_data.csv", chunk_parts=1, client_id=0,train_size=0.8):
         if dataset_path and os.path.exists(dataset_path):
-            self._load_dataset(dataset_path, chuch_parts, client_id)
+            self._load_dataset(dataset_path, chunk_parts, client_id)
         else:
             print("datapath does not exist")
             return
+            
+        self.train_x = self.x.head(int(len(self.x)*train_size))
+        self.train_y = self.y.head(int(len(self.y)*train_size)) 
         batch_size = 10
-        num_batches = (len(self.x) + batch_size - 1) // batch_size
-        for i in tqdm(range(0, len(self.x), batch_size), total=num_batches):
+        num_batches = (len(self.train_x) + batch_size - 1) // batch_size
+        for i in tqdm(range(0, len(self.train_x), batch_size), total=num_batches):
             self.model.partial_fit(
-                self.preprocessor_pipeline.transform(self.x[i:i+batch_size]),
-                self.y[i:i+batch_size],
-                classes=self.classes
+                self.preprocessor_pipeline.transform(self.train_x[i:i+batch_size]),
+                self.train_y[i:i+batch_size],
+                self.classes
             )
         print("Training Complete")
 
@@ -101,14 +168,12 @@ class SpamClassificationHandler(BaseModel):
         print(report)
         return {'accuracy': acc, 'f1': f1, 'report': report}
 
-    # def extract_parameters(self):
-    #     # Return model state dict (weights)
-    #     return self.model.state_dict()
-
     def save_model(self, save_path):
         joblib.dump(self.model, save_path)
         return save_path
 
+    def load_model(self, model_path):
+        self.model = joblib.load(model_path)
 
 
 # Example usage:
@@ -120,11 +185,22 @@ def main():
     dataset_path = "data/classification_dataset/spam_data.csv"
     num_clients = 4  # Set the number of clients/sections here
     model = SpamClassificationHandler()
-    model.train_model(dataset_path, num_clients=num_clients, client_id=0)
+    model2 = SpamClassificationHandler()
+    model3 = SpamClassificationHandler()
+    model.train_model(chunk_parts=100,client_id=80)
     model.evaluate_model()
-  
-  #ExtractWeights
-  #SaveOrSendWeights
+    model2.train_model(chunk_parts=100,client_id=12)
+    model2.evaluate_model()
+    model3.train_model(chunk_parts=100,client_id=58)
+    model3.evaluate_model()
+    extract1 = model.extract_parameters()
+    extract2 = model2.extract_parameters()
+    global_model = SpamClassificationHandler()
+    global_model._load_dataset(dataset_path,100)
+
+    cc, fc  = global_model.aggregate_mnb_models([extract1,extract2])
+    global_model.set_parameters({'class_count_':cc,'feature_count_':fc})
+    global_model.evaluate_model(test_fraction=1)
 
 if __name__ == "__main__":
     main()
@@ -141,7 +217,6 @@ def simulate(numOfClients,model_path,dataset_path,current_round):
     for client_id in range(numOfClients):
         print(current_round,": ", models[client_id].evaluate_model())
 
-    
     # saving
     saves = []
     for client_id in range(numOfClients):

@@ -13,10 +13,10 @@ pinata_jwt = os.getenv("PINATA_JWT")
 # PINATA_URL = f"https://api.pinata.cloud/v3/files/public"
 
      
-@pinata_bp.route('/ipfs-download/<string:cid>', methods=['GET'])
+@pinata_bp.route('/ipfs-download/<string:cid>/<string:path>', methods=['GET'])
 @cross_origin(origin='*')
-def download(cid):
-    return pinata_download(cid)
+def download(cid,path):
+    return pinata_download(cid,path)
 
 
 @pinata_bp.route('/ipfs-upload', methods=['GET'])

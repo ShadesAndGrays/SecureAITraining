@@ -339,11 +339,25 @@ async function startTraining(count, flType, cid,rounds) {
       form.append("round", round);
       const formData = Object.fromEntries(form.entries());
 
-      // await fetch(`/api/worker/start`, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(formData),
-      // });
+      let cids = await fetch(`/api/worker/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const aggegate_form = new FormData();
+      aggegate_form.append("flType", round);
+      aggegate_form.append("cids",cids);
+      const aggegate_formData = Object.fromEntries(form.entries());
+
+      report = await fetch(`/api/aggregator/aggregate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(aggegate_formData),
+      });
+      console.log(report)
+      cid = report.cid
+
     }
   } catch (err) {
     console.log(err);
