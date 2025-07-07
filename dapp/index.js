@@ -313,7 +313,7 @@ async function proposeTraining(e) {
           .send({
             from: connectedAccount,
           });
-        await startTraining(formData.numClients, formData.flType, data.cid);
+        await startTraining(formData.numClients, formData.flType, data.cid,formData.epochs);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -326,20 +326,25 @@ async function proposeTraining(e) {
   // await fetch(`/api/heartbeat`)
 }
 
-async function startTraining(count, flType, cid) {
+async function startTraining(count, flType, cid,rounds) {
   try {
-    const form = new FormData();
-    form.append("count", count);
-    form.append("flType", flType);
-    form.append("cid", cid);
-    form.append("round", 1);
-    const formData = Object.fromEntries(form.entries());
+    console.log("Staring rounds: ",rounds)
+    for (let round = 1; round < Number(rounds)+1; round++) {
 
-    await fetch(`/api/worker/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+      console.log("rounds ",round)
+      const form = new FormData();
+      form.append("count", count);
+      form.append("flType", flType);
+      form.append("cid", cid);
+      form.append("round", round);
+      const formData = Object.fromEntries(form.entries());
+
+      // await fetch(`/api/worker/start`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(formData),
+      // });
+    }
   } catch (err) {
     console.log(err);
     setWarning("Failed Training Initiation" + err);
