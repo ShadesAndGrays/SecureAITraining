@@ -32,7 +32,7 @@
 - [ ] Security review and testing
 
 ## FEDERATED LEARNING 
-- [ ] Data processing pipeline
+- [x] Data processing pipeline
 - [x] Model Selction
 - [ ] Model aggregation 
 - [ ] Privacy preserving techniquies
