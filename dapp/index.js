@@ -313,7 +313,12 @@ async function proposeTraining(e) {
           .send({
             from: connectedAccount,
           });
-        await startTraining(formData.numClients, formData.flType, data.cid,formData.epochs);
+        await startTraining(
+          formData.numClients,
+          formData.flType,
+          data.cid,
+          formData.epochs
+        );
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -326,12 +331,11 @@ async function proposeTraining(e) {
   // await fetch(`/api/heartbeat`)
 }
 
-async function startTraining(count, flType, cid,rounds) {
+async function startTraining(count, flType, cid, rounds) {
   try {
-    console.log("Staring rounds: ",rounds)
-    for (let round = 1; round < Number(rounds)+1; round++) {
-
-      console.log("rounds ",round)
+    console.log("Staring rounds: ", rounds);
+    for (let round = 1; round < Number(rounds) + 1; round++) {
+      console.log("rounds ", round);
       const form = new FormData();
       form.append("count", count);
       form.append("flType", flType);
@@ -339,30 +343,73 @@ async function startTraining(count, flType, cid,rounds) {
       form.append("round", round);
       const formData = Object.fromEntries(form.entries());
 
-      let result = await (await fetch(`/api/worker/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })).json();
+      let result = await (
+        await fetch(`/api/worker/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        })
+      ).json();
 
       if (result.cids) {
-      const aggegate_form = new FormData();
-      aggegate_form.append("flType", flType);
-      aggegate_form.append("cids",result.cids);
-      aggegate_form.append("round", round);
-      const aggegate_formData = Object.fromEntries(aggegate_form.entries());
+        const aggegate_form = new FormData();
+        aggegate_form.append("flType", flType);
+        aggegate_form.append("cids", result.cids);
+        aggegate_form.append("round", round);
+        const aggegate_formData = Object.fromEntries(aggegate_form.entries());
 
-      let report = await (await fetch(`/api/aggregator/aggregate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(aggegate_formData),
-      })).json();
-      cid = report.cid
+        // Start aggregation
+        let _ = await (
+          await fetch(`/api/aggregator/start-aggregate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(aggegate_formData),
+          })
+        ).json();
+
+        // Check aggregation
+        let report = await checkAggregateStatus();
+        if (report) cid = report.cid;
       }
     }
   } catch (err) {
     console.log(err);
     setWarning("Failed Training Initiation" + err);
+  }
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function checkAggregateStatus() {
+  let pollAttempt = 0;
+  let pollInterval = 5000; // 5secs
+  let maxPollAttempts = 240; // 5 * 240 = 1200s or 20 min
+
+  while (pollAttempt < maxPollAttempts) {
+    pollAttempt++;
+    const statusResponse = await fetch(`/api/aggregator/check-aggregate`);
+    const { message } = await statusResponse.json();
+    if (message === "done") {
+      console.log("aggegation complete");
+      const result = await fetch(`/api/aggregator/get-aggregated-cid`);
+      const { cid, accuracy, f1 } = await result.json();
+      console.log("aggregation complete");
+      return { status: "done", cid, accuracy, f1 };
+    } else if (message === "failed") {
+      setWarning(`Aggregation failed`);
+      throw new Error(`Aggregation failed`);
+      // Handle error
+    } else {
+      // Task is still pending or in progress, poll again
+      console.log(
+        `Aggregation status: "${message}". Waiting for ${
+          pollInterval / 1000
+        } seconds...`
+      );
+      await delay(pollInterval);
+    }
   }
 }
 

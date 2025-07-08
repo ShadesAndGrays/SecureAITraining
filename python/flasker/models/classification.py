@@ -119,15 +119,15 @@ class SpamClassificationHandler(BaseModel):
         return model
 
 
-    def _load_dataset(self, dataset_path, chuch_parts, client_id = 0):
+    def _load_dataset(self,dataset_path="data/classification_dataset/spam_data.csv", chunk_parts=1, client_id = 0):
         df = pd.read_csv(dataset_path)
         # Deterministically shuffle using client_id as seed
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
         # Split into non-overlapping chunks
-        chunk_size = len(df) // chuch_parts
+        chunk_size = len(df) // chunk_parts
         start = client_id * chunk_size
         # Last client takes the remainder if not divisible
-        if client_id == chuch_parts - 1:
+        if client_id == chunk_parts - 1:
             end = len(df)
         else:
             end = start + chunk_size
@@ -215,7 +215,7 @@ def simulate(numOfClients,model_parameters_path,dataset_path,current_round):
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(chunk_parts=100*numOfClients,client_id=client_id)
+        models[client_id].train_model(chunk_parts=10000*numOfClients,client_id=client_id)
     # evaluation
     for client_id in range(numOfClients):
         print(current_round,": ", models[client_id].evaluate_model())
