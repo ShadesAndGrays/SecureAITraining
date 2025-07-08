@@ -21,12 +21,12 @@ def start():
     fl_type = data.get('flType')
     round_id = int(data.get('round'))
 
-    local_model_filename = f'download/temp/{fl_type}.joblib' # Example path
+    model_parameters_path = f'download/temp/aggregate_{fl_type}.joblib' # Example path
+    pin.download(cid,model_parameters_path)
     dataset_path = ""
     match fl_type:
         case 'spam_classification':
-            dataset_path = "data/classification_dataset/spam_data.csv"
-            models = spam_simulate(count,local_model_filename,dataset_path,round_id)
+            models = spam_simulate(count,model_parameters_path,dataset_path,round_id)
         case _:
             return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
 
@@ -34,11 +34,14 @@ def start():
     # model.train_model(dataset_path,count)
     # print(model.evaluate_model(dataset_path,count))
     # model.save_model(local_model_filename)
+    cids = []
+    print(f"uploding {models}")
     for m in models:
         cid = pin.pinata_upload(m)
-        print(f"upload {m}\ncid: {cid}\n\n\n")
+        cids.append(cid)
+        print(f"uploaded {m}\ncid: {cid}\n\n\n")
 
-    return jsonify({'message' :'success'})
+    return jsonify({'message' :'success', 'cids': cids })
 
 # @worker.route('/propose', methods=['POST'])
 # @cross_origin(origin='*')

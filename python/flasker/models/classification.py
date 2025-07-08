@@ -32,19 +32,21 @@ class SpacyPreprocessor(BaseEstimator, TransformerMixin):
 class SpamClassificationHandler(BaseModel):
     # Handle loads the model from a file downloaded from ipfs
     # Check the download folder for the model 
-    def __init__(self, model_path=None):
+    def __init__(self, model_path=None,initial=False):
+        self.model = MultinomialNB()
         if model_path and os.path.exists(model_path):
-            self.set_parameters(model_path)
-        else:
-            print(f"Error: Failed to find model: {model_path}")
-            self.model = MultinomialNB()
+            self.set_parameters_from_file(model_path)
         
         self.preprocessor = SpacyPreprocessor() 
-        self.vectorizer = joblib.load('download/tfidf_vectorizer_old.joblib')
+        self.vectorizer = joblib.load('download/tfidf_vectorizer.joblib')
         self.preprocessor_pipeline = Pipeline([
             ('spacy_preprocessor',self.preprocessor),
             ('vectorizer_tfidf',self.vectorizer),
         ])
+        # Fit the model to have parameters to send if initial model
+        if initial:
+            self.train_model(chunk_parts=1000,train_size=0.1)
+            pass
 
     def set_parameters_from_file(self,model_parameters_path):
         parameters = joblib.load(model_parameters_path)
@@ -73,7 +75,7 @@ class SpamClassificationHandler(BaseModel):
             "class_count_": self.model.class_count_,
             "feature_count_": self.model.feature_count_,
         }
-        save_path = joblib.dump(parameters,save_path)
+        joblib.dump(parameters,save_path)
         return save_path
 
     def aggregate_mnb_models(self,client_stats):
@@ -205,14 +207,15 @@ def main():
 if __name__ == "__main__":
     main()
 
-def simulate(numOfClients,model_path,dataset_path,current_round):
+def simulate(numOfClients,model_parameters_path,dataset_path,current_round):
     models:list[SpamClassificationHandler] = []
     for _ in range(numOfClients):
-        m = SpamClassificationHandler(model_path)
+        m = SpamClassificationHandler()
+        m.set_parameters_from_file(model_parameters_path)
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(dataset_path,100*numOfClients,client_id)
+        models[client_id].train_model(chunk_parts=100*numOfClients,client_id=client_id)
     # evaluation
     for client_id in range(numOfClients):
         print(current_round,": ", models[client_id].evaluate_model())
@@ -220,6 +223,6 @@ def simulate(numOfClients,model_path,dataset_path,current_round):
     # saving
     saves = []
     for client_id in range(numOfClients):
-        saves.append(models[client_id].save_model(f'download/temp/{client_id}_spam_classifier_{current_round}.joblib'))
+        saves.append(models[client_id].save_parameters(f'download/temp/{client_id}_spam_classifier_{current_round}.joblib'))
     return saves
 

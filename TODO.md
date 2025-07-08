@@ -9,8 +9,8 @@
 - [x] Initial setup
 - [x] IPFS enpoint
 - [x] Proposer API
-- [ ] Worker API 
-- [ ] Aggregator API
+- [x] Worker API 
+- [x] Aggregator API
 
 ## BLOCKCHAIN
 - [x] Smart contract deployment script

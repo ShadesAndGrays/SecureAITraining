@@ -38,12 +38,12 @@ def propose():
     model:BaseModel = {}
     match fl_type:
         case 'spam_classification':
-            model = SpamClassificationHandler()
+            model = SpamClassificationHandler(initial=True)
         case _:
             return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
     # Extrart parameters
     file_path = f'download/temp/{fl_type}.joblib'
-    model.save_model(file_path)
+    model.save_parameters(file_path)
     # Upload parameters
     cid = pin.pinata_upload(file_path)
     # return cid

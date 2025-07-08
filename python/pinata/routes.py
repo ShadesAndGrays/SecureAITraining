@@ -33,6 +33,7 @@ def heartbeat():
 
 def pinata_download(cid,path):
     url = f'https://{pinata_gateway}/ipfs/{cid}'
+    print("dowload",url)
     response = requests.request("GET", url)
     response.raise_for_status()
     with open(path,'wb') as f:
