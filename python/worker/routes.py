@@ -26,14 +26,10 @@ def start():
     dataset_path = ""
     match fl_type:
         case 'spam_classification':
-            models = spam_simulate(count,model_parameters_path,dataset_path,round_id)
+            models = spam_simulate(count,model_parameters_path,round_id)
         case _:
             return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
 
-    # model.set_parameters(param)
-    # model.train_model(dataset_path,count)
-    # print(model.evaluate_model(dataset_path,count))
-    # model.save_model(local_model_filename)
     cids = []
     print(f"uploding {models}")
     for m in models:
@@ -42,23 +38,3 @@ def start():
         print(f"uploaded {m}\ncid: {cid}\n\n\n")
 
     return jsonify({'message' :'success', 'cids': cids })
-
-# @worker.route('/propose', methods=['POST'])
-# @cross_origin(origin='*')
-# def propose():
-#     # create model
-#     data = request.json
-#     fl_type = data.get('flType')
-#     model:BaseModel = {}
-#     match fl_type:
-#         case 'spam_classification':
-#             model = SpamClassificationHandler()
-#         case _:
-#             return jsonify({"message":f" '{fl_type}' NOT IMPLEMEMTED"}), 500
-#     # Extrart parameters
-#     file_path = 'download/temp/model.joblib'
-#     model.save_model(file_path)
-#     # Upload parameters
-#     cid = pin.pinata_upload(file_path)
-#     # return cid
-#     return jsonify({"message":"Success","cid":cid})

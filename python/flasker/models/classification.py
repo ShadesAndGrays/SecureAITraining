@@ -207,7 +207,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-def simulate(numOfClients,model_parameters_path,dataset_path,current_round):
+def simulate(numOfClients,model_parameters_path,current_round):
     models:list[SpamClassificationHandler] = []
     for _ in range(numOfClients):
         m = SpamClassificationHandler()
@@ -215,7 +215,7 @@ def simulate(numOfClients,model_parameters_path,dataset_path,current_round):
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(chunk_parts=10000*numOfClients,client_id=client_id)
+        models[client_id].train_model(chunk_parts=100*numOfClients,client_id=client_id)
     # evaluation
     for client_id in range(numOfClients):
         print(current_round,": ", models[client_id].evaluate_model())

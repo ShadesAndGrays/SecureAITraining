@@ -96,7 +96,7 @@ def aggregate_spam_classificatoin(parameters):
         cc, fc  = global_model.aggregate_mnb_models(parameters)
         global_model.set_parameters({'class_count_':cc,'feature_count_':fc})
         global_model._load_dataset()
-        metrics = global_model.evaluate_model(test_fraction=0.005)
+        metrics = global_model.evaluate_model(test_fraction=0.008)
         return global_model, metrics['accuracy'], metrics['f1'] 
 
 

@@ -392,7 +392,6 @@ async function checkAggregateStatus() {
     const statusResponse = await fetch(`/api/aggregator/check-aggregate`);
     const { message } = await statusResponse.json();
     if (message === "done") {
-      console.log("aggegation complete");
       const result = await fetch(`/api/aggregator/get-aggregated-cid`);
       const { cid, accuracy, f1 } = await result.json();
       console.log("aggregation complete");
