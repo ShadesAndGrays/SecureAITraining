@@ -8,8 +8,8 @@ async function main() {
     contractAddress
   );
   const accounts = await hre.ethers.getSigners();
-  // const randomAccounts = accounts.slice(2, 10);
-  const randomAccounts = accounts;
+  const randomAccounts = accounts.slice(2, 10);
+  // const randomAccounts = accounts;
 
   result = [];
   for (const account of randomAccounts) {

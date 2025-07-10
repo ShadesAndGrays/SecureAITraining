@@ -207,7 +207,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-def simulate(numOfClients,model_parameters_path,current_round):
+def simulate(numOfClients,model_parameters_path,current_round,participants):
     models:list[SpamClassificationHandler] = []
     for _ in range(numOfClients):
         m = SpamClassificationHandler()
@@ -215,14 +215,18 @@ def simulate(numOfClients,model_parameters_path,current_round):
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(chunk_parts=100*numOfClients,client_id=client_id)
+        models[client_id].train_model(chunk_parts=1000*numOfClients,client_id=client_id)
     # evaluation
+    metrics = {}
+    # return {'accuracy': acc, 'f1': f1, 'report': report}
     for client_id in range(numOfClients):
-        print(current_round,": ", models[client_id].evaluate_model())
+        metric = models[client_id].evaluate_model() 
+        metrics[participants[client_id]] = metric
+        print(current_round,": ", metric )
 
     # saving
     saves = []
     for client_id in range(numOfClients):
         saves.append(models[client_id].save_parameters(f'download/temp/{client_id}_spam_classifier_{current_round}.joblib'))
-    return saves
+    return saves, metrics
 

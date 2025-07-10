@@ -106,14 +106,9 @@ async function load_registration_contract() {
   contracts["Registration"] = c;
   console.log(c);
 
-  let list = document.getElementById("dashboardDataParticipantList");
-  const val = await c.methods.getRegistrants().call();
-  let participants = "";
-  for (let i of val) {
-    participants += `<tr><td>${i}</td></tr>`;
-  }
-  list.innerHTML = participants;
+  refreshParticipantList();
 }
+
 async function load_count_contract() {
   let c = new web3.eth.Contract(CountArtifact.abi, count_contract_address);
   console.log(c);
@@ -289,7 +284,6 @@ async function proposeTraining(e) {
   document.getElementById("proposeSubmitBtn").disabled = true;
   const form = e.target;
   const formData = Object.fromEntries(new FormData(form).entries());
-
   try {
     await fetch(`/api/propose`, {
       method: "POST",
@@ -308,16 +302,41 @@ async function proposeTraining(e) {
           });
 
         console.log(formData.numClients);
-        await contracts["RoundControl"].methods
+        // Start round
+        let roundAddress;
+        const receipt = await contracts["RoundControl"].methods
           .startRound(formData.numClients)
           .send({
             from: connectedAccount,
           });
+        if (receipt.status) {
+          roundAddress = receipt.events.RoundStarted.returnValues.roundAddress;
+        } else {
+          console.error("Transaction failed (status: 0).");
+          setWarning("Failed to Start Round");
+          throw new Error("Transaction failed on-chain.");
+        }
+
+        // Get Round infromation
+        console.log("Round Address: ", roundAddress);
+        const roundContract = new web3.eth.Contract(
+          RoundArtificat.abi,
+          roundAddress
+        );
+        roundContract.handleRevert = true;
+
+        const participantsList = await roundContract.methods
+          .getParticipants()
+          .call();
+
+        console.log("stariting rounds with partiipants", participantsList);
+
         await startTraining(
           formData.numClients,
           formData.flType,
           data.cid,
-          formData.epochs
+          formData.epochs,
+          participantsList
         );
       })
       .catch((error) => {
@@ -331,7 +350,7 @@ async function proposeTraining(e) {
   // await fetch(`/api/heartbeat`)
 }
 
-async function startTraining(count, flType, cid, rounds) {
+async function startTraining(count, flType, cid, rounds, participantsList) {
   try {
     console.log("Staring rounds: ", rounds);
     for (let round = 1; round < Number(rounds) + 1; round++) {
@@ -341,6 +360,7 @@ async function startTraining(count, flType, cid, rounds) {
       form.append("flType", flType);
       form.append("cid", cid);
       form.append("round", round);
+      form.append("participants", participantsList);
       const formData = Object.fromEntries(form.entries());
 
       let result = await (
@@ -350,6 +370,10 @@ async function startTraining(count, flType, cid, rounds) {
           body: JSON.stringify(formData),
         })
       ).json();
+      // if (result.metrics){
+      //   // table_metrics = result.metrics
+      //   // console.log("metrics: ", );
+      // }
 
       if (result.cids) {
         const aggegate_form = new FormData();
@@ -370,6 +394,32 @@ async function startTraining(count, flType, cid, rounds) {
         // Check aggregation
         let report = await checkAggregateStatus();
         if (report) cid = report.cid;
+
+        let roundAddress;
+        const receipt = await contracts["RoundControl"].methods
+          .endRound(cid)
+          .send({
+            from: connectedAccount,
+          });
+        if (receipt.status) {
+          console.log("reciept after ending:", receipt.events);
+          roundAddress = receipt.events.RoundStarted.returnValues.roundAddress;
+
+          const roundContract = new web3.eth.Contract(
+            RoundArtificat.abi,
+            roundAddress
+          );
+
+          roundContract.handleRevert = true;
+
+          participantsList = await roundContract.methods
+            .getParticipants()
+            .call();
+        } else {
+          console.error("Transaction failed (status: 0).");
+          setWarning("Failed to End Round");
+          throw new Error("Transaction failed on-chain.");
+        }
       }
     }
   } catch (err) {
@@ -436,12 +486,19 @@ function refreshRoundInfo() {
         c.methods
           .getParticipants()
           .call()
-          .then((response) => {
+          .then(async (response) => {
             noOfParticipants.innerText = response.length;
+            let metrics = await (await fetch("/api/worker/get_metrics")).json();
 
             currentParticipants.innerHTML = "";
             for (const p of response) {
-              currentParticipants.innerHTML += `<tr><td>${p}</td></tr>`;
+              currentParticipants.innerHTML += `<tr>
+              <td>${p}</td>
+              <td>${
+                metrics.hasOwnProperty(p) ? metrics[p].accuracy : "N/A"
+              }</td>
+              <td>${metrics.hasOwnProperty(p) ? metrics[p].f1 : "N/A"}</td>
+                </tr>`;
             }
           });
       }
@@ -457,6 +514,13 @@ window.showPage = showPage;
 // window.startFL = startFL;
 
 // Manual refresh for interface
+// Rare changes
+setInterval(() => {
+  refreshRoundInfo();
+  refreshParticipantList();
+}, 5000);
+
+// live changes
 setInterval(() => {
   web3.eth.getBlockNumber().then((response) => {
     let blockHeight = document.getElementById("dashboardDataBlockHeight");
@@ -464,13 +528,31 @@ setInterval(() => {
   });
   // Show account
   toggleAccountAddress(connectedAccount ? connectedAccount.length != 0 : false);
-  refreshRoundInfo();
   contracts["Count"].methods
     .count()
     .call()
     .then((value) => refreshCount(value));
-}, 2000);
 
+  contracts["RoundControl"].methods
+    .currentRoundId()
+    .call()
+    .then((value) => (currentRoundId = value));
+}, 1000);
+
+async function refreshParticipantList() {
+  let c = new web3.eth.Contract(
+    RegistrationArtifact.abi,
+    registration_contract_address
+  );
+  let list = document.getElementById("dashboardDataParticipantList");
+  const val = await c.methods.getRegistrants().call();
+  // const val = await c.methods.getRegistrants().call();
+  let participants = "";
+  for (let i = 0; i < val.length; i++) {
+    participants += `<tr><td>${val[i]}</td><td>${100}</td></tr>`;
+  }
+  list.innerHTML = participants;
+}
 // async function sendSingedTransaction(contractAddress,contract_interaction){
 
 //    const transactionParameters = {

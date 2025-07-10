@@ -74,7 +74,7 @@
 
     <!-- Participant Page -->
     <div id="participantPage" style="display: none">
-      <h2>Participant Dashboard</h2>
+      <h2>Participant List</h2>
       <div id="praticipantAccount"></div>
       <button id="registerBtn">Register on Blockchain</button>
 
@@ -82,6 +82,7 @@
         <table>
           <thead>
             <th>Participants</th>
+            <th>Reputation</th>
           </thead>
           <tbody id="dashboardDataParticipantList">
             <tr>
@@ -134,7 +135,7 @@
               <th>Number of Clients</th>
               <th>Block Height</th>
               <th>Global Accuracy</th>
-              <th>Global Loss</th>
+              <th>Global F1 Score</th>
               <th>Reward Pool</th>
             </tr>
           </thead>
@@ -154,38 +155,28 @@
         <table>
           <thead>
             <th>Client Address</th>
-            <th>Status</th>
             <th>Accuracy</th>
-            <th>Last Updates</th>
-            <th>Training Loss</th>
+            <th>Training F1 Score</th>
           </thead>
           <tbody id="currentParticipants">
             <tr>
               <td>0x0000000000000000000002</td>
-              <td>Idle</td>
               <td>0.98</td>
-              <td>10/10/2025</td>
               <td>0.3</td>
             </tr>
             <tr>
               <td>0x0000000000000000000003</td>
-              <td>Idle</td>
               <td>0.83</td>
-              <td>10/10/2025</td>
               <td>120</td>
             </tr>
             <tr>
               <td>0x0000000000000000000004</td>
-              <td>Active</td>
               <td>pending</td>
-              <td>9/10/2025</td>
               <td>pending</td>
             </tr>
             <tr>
               <td>0x0000000000000000000005</td>
-              <td>Offline</td>
               <td>pending</td>
-              <td>N/A</td>
               <td>pending</td>
             </tr>
           </tbody>
@@ -200,7 +191,7 @@
               <th>Status</th>
               <th>Accuracy</th>
               <th>Last Updates</th>
-              <th>Training Loss</th>
+              <th>Training F1 Score</th>
             </tr>
           </thead>
           <tbody>

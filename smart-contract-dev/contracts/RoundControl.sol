@@ -40,7 +40,7 @@ contract Round {
         return participants;
     }
 
-    function Aggregate(string memory _nextRoundCid) public {
+    function aggregate(string memory _nextRoundCid) public {
         nextRoundCid = _nextRoundCid;
     }
 
@@ -53,6 +53,7 @@ contract Round {
 contract RoundControl {
     uint256 public currentRoundId;
     uint256 public numberOfRounds;
+    uint64 public noOfParticipants;
     bool public active;
     address public owner;
     string private initialGlobalModelCid;
@@ -60,8 +61,8 @@ contract RoundControl {
 
     mapping(uint256 => address) roundMapping;
 
-    event RoundStarted(uint256 roundId);
-    event RoundEnded(uint256 roundId);
+    event RoundStarted(uint256 roundId,address roundAddress);
+    event RoundEnded(uint256 roundId,address roundAddress);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not contract owner");
@@ -87,7 +88,7 @@ contract RoundControl {
         return roundMapping[_roundId];
     }
 
-    function createRound(uint64 _noOfParticipants) public onlyOwner returns (uint256) {
+    function createRound(uint64 _noOfParticipants) public onlyOwner returns (address) {
         require(!active, "Failed Create: Round is Currently active");
 
         uint256 roundId = currentRoundId;
@@ -109,28 +110,31 @@ contract RoundControl {
             );
             roundMapping[currentRoundId] = address(newRound);
         }
-        return roundId;
+        return roundMapping[currentRoundId];
     }
 
     function nextRound() private {
         currentRoundId = currentRoundId + 1;
+        startRound(noOfParticipants);
     }
 
-    function endRound() public onlyOwner {
+    function endRound(string memory _nextRoundCid) public onlyOwner {
         require(active, "Failed end: No active round currently in progress");
         active = false;
-        emit RoundEnded(currentRoundId);
+        emit RoundEnded(currentRoundId,roundMapping[currentRoundId]);
+        Round(roundMapping[currentRoundId]).aggregate(_nextRoundCid);
         nextRound();
     }
 
     function startRound(
         uint64 _noOfParticipants
-    ) public onlyOwner returns (uint256) {
+    ) public onlyOwner returns (address) {
         require(!active, "Failed Start: Round is currently running");
-        createRound(_noOfParticipants);
+        noOfParticipants = _noOfParticipants;
+        address round = createRound(_noOfParticipants);
         active = true;
-        emit RoundStarted(currentRoundId);
-        return currentRoundId;
+        emit RoundStarted(currentRoundId,round);
+        return round;
     }
 
     function submitParticipantCid(string memory cid) public {
