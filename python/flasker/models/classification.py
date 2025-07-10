@@ -215,7 +215,7 @@ def simulate(numOfClients,model_parameters_path,current_round,participants):
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(chunk_parts=1000*numOfClients,client_id=client_id)
+        models[client_id].train_model(chunk_parts=100*numOfClients,client_id=client_id)
     # evaluation
     metrics = {}
     # return {'accuracy': acc, 'f1': f1, 'report': report}

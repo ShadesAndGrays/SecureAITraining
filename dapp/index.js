@@ -536,7 +536,11 @@ setInterval(() => {
   contracts["RoundControl"].methods
     .currentRoundId()
     .call()
-    .then((value) => (currentRoundId = value));
+    .then((value) => {
+      currentRoundId = value;
+      let currenRound = document.getElementById("dashboardDataCurrentRound");
+      currenRound.innerText = `${value}`;
+    });
 }, 1000);
 
 async function refreshParticipantList() {
