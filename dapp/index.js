@@ -363,8 +363,8 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
       form.append("participants", participantsList);
       const formData = Object.fromEntries(form.entries());
 
-      let result = await (
-        await fetch(`/api/worker/start`, {
+      await (
+        await fetch(`/api/worker/start-work`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -374,7 +374,7 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
       //   // table_metrics = result.metrics
       //   // console.log("metrics: ", );
       // }
-
+      let result = await checkWorkerStatus(); 
       if (result.cids) {
         const aggegate_form = new FormData();
         aggegate_form.append("flType", flType);
@@ -430,6 +430,36 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function checkWorkerStatus() {
+  let pollAttempt = 0;
+  let pollInterval = 5000; // 5secs
+  let maxPollAttempts = 240; // 5 * 240 = 1200s or 20 min
+
+  while (pollAttempt < maxPollAttempts) {
+    pollAttempt++;
+    const statusResponse = await fetch(`/api/worker/check-work`);
+    const { message } = await statusResponse.json();
+    if (message === "done") {
+      const result = await fetch(`/api/worker/get-cids`);
+      const { cids, metrics } = await result.json();
+      console.log("workers complete");
+      return { status: "done", cids, metrics };
+    } else if (message === "failed") {
+      setWarning(`An eror occured with workers`);
+      throw new Error(`An eror occured with workers`);
+      // Handle error
+    } else {
+      // Task is still pending or in progress, poll again
+      console.log(
+        `Worker status: "${message}". Waiting for ${
+          pollInterval / 1000
+        } seconds...`
+      );
+      await delay(pollInterval);
+    }
+  }
 }
 
 async function checkAggregateStatus() {
