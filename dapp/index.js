@@ -434,8 +434,8 @@ function delay(ms) {
 
 async function checkWorkerStatus() {
   let pollAttempt = 0;
-  let pollInterval = 5000; // 5secs
-  let maxPollAttempts = 240; // 5 * 240 = 1200s or 20 min
+  let pollInterval = 60000; // 60 secs
+  let maxPollAttempts = 240; // 240 min = 4hr
 
   while (pollAttempt < maxPollAttempts) {
     pollAttempt++;
@@ -464,8 +464,8 @@ async function checkWorkerStatus() {
 
 async function checkAggregateStatus() {
   let pollAttempt = 0;
-  let pollInterval = 5000; // 5secs
-  let maxPollAttempts = 240; // 5 * 240 = 1200s or 20 min
+  let pollInterval = 60000; // 1min
+  let maxPollAttempts = 240; // 240 min = 4 hr
 
   while (pollAttempt < maxPollAttempts) {
     pollAttempt++;

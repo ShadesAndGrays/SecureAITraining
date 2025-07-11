@@ -95,8 +95,8 @@ def aggregate_spam_classificatoin(parameters):
         global_model = SpamClassificationHandler(initial=True)
         cc, fc  = global_model.aggregate_mnb_models(parameters)
         global_model.set_parameters({'class_count_':cc,'feature_count_':fc})
-        global_model._load_dataset()
-        metrics = global_model.evaluate_model(test_fraction=0.008)
+        global_model._load_dataset() # load entire data set
+        metrics = global_model.evaluate_model(test_fraction=0.2) # test last 20 percent
         return global_model, metrics['accuracy'], metrics['f1'] 
 
 

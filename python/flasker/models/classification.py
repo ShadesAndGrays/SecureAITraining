@@ -40,7 +40,7 @@ class SpamClassificationHandler(BaseModel):
         self.preprocessor = SpacyPreprocessor() 
         self.vectorizer = joblib.load('download/tfidf_vectorizer.joblib')
         self.preprocessor_pipeline = Pipeline([
-            ('spacy_preprocessor',self.preprocessor),
+            # ('spacy_preprocessor',self.preprocessor), # note needed anymore
             ('vectorizer_tfidf',self.vectorizer),
         ])
         # Fit the model to have parameters to send if initial model
@@ -145,7 +145,7 @@ class SpamClassificationHandler(BaseModel):
             
         self.train_x = self.x.head(int(len(self.x)*train_size))
         self.train_y = self.y.head(int(len(self.y)*train_size)) 
-        batch_size = 10
+        batch_size = 500
         num_batches = (len(self.train_x) + batch_size - 1) // batch_size
         for i in tqdm(range(0, len(self.train_x), batch_size), total=num_batches):
             self.model.partial_fit(
