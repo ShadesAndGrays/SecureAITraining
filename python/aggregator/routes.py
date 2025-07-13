@@ -6,6 +6,7 @@ from flasker.models.classification import SpamClassificationHandler
 import os
 import multiprocessing
 import time
+import csv
 
 aggregator_bp=Blueprint('aggregator',__name__,url_prefix='/aggregator')
 
@@ -16,6 +17,8 @@ aggregated_result = manager.dict()
 aggregate_process = manager.dict()
 
 aggregate_status = manager.Value('u','idle') # idle, working, done, failed
+metric_file = None
+
 
 @aggregator_bp.route('/start-aggregate', methods=['POST'])
 @cross_origin(origin='*')
@@ -33,6 +36,7 @@ def start_aggregation():
 
     global current_aggregate_process
     current_aggregate_process = new_process
+    
 
     with aggregate_lock:
             aggregate_status.set('working') # Set to working immediately after starting the process
@@ -82,7 +86,7 @@ def _start_aggregate(fl_type,cids,round_id,shared_status,shared_result,shared_lo
             for cid in cids:
                 file = pin.pinata_download(cid,f'download/temp/aggregation_{cid}.joblib')
                 models.append(SpamClassificationHandler(model_path=file).extract_parameters())
-            global_model, acc, f1 = aggregate_spam_classificatoin(models)
+            global_model, acc, f1, recall, precision = aggregate_spam_classificatoin(models)
             global_cid = pin.pinata_upload(global_model.save_parameters(f'download/temp/global_aggregation_classification_{round_id}.joblib'))
             with shared_lock:
                 print('done training')
@@ -90,14 +94,24 @@ def _start_aggregate(fl_type,cids,round_id,shared_status,shared_result,shared_lo
                 shared_result['cid'] = global_cid
                 shared_result['accuracy'] = acc
                 shared_result['f1'] = f1
+                shared_result['precision'] = precision
+                shared_result['recall'] = recall
+
+            metric_file_path = 'download/50_rounds_20_clients.csv'
+            file_exists_before_open = os.path.exists(metric_file_path)
+            with open(metric_file_path, 'a', newline='') as metric_file: 
+                writer = csv.writer(metric_file, dialect='excel')  
+                if not file_exists_before_open:
+                    writer.writerow(['Round', 'accuracy_score', 'f1_score','recall','precision' ,'global_cid']) # Add Global CID to headers
+                writer.writerow([round_id,acc,f1,recall,precision,global_cid])
 
 def aggregate_spam_classificatoin(parameters):
         global_model = SpamClassificationHandler(initial=True)
         cc, fc  = global_model.aggregate_mnb_models(parameters)
         global_model.set_parameters({'class_count_':cc,'feature_count_':fc})
-        global_model._load_dataset() # load entire data set
-        metrics = global_model.evaluate_model(test_fraction=0.2) # test last 20 percent
-        return global_model, metrics['accuracy'], metrics['f1'] 
+        # global_model._load_dataset() # load entire data set
+        metrics = global_model.evaluate_model(test_fraction=1.0,evaluation_dataset='data/classification_dataset/preprocessed_test.csv') # load global evalutation dataset
+        return global_model, metrics['accuracy'], metrics['f1'],metrics['recall'],metrics['precision']
 
 
 

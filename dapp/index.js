@@ -434,8 +434,8 @@ function delay(ms) {
 
 async function checkWorkerStatus() {
   let pollAttempt = 0;
-  let pollInterval = 60000; // 60 secs
-  let maxPollAttempts = 240; // 240 min = 4hr
+  let pollInterval = 5000; // 5 sec
+  let maxPollAttempts = 240; // 240 * 5  = 1200 = 20 min 
 
   while (pollAttempt < maxPollAttempts) {
     pollAttempt++;
@@ -464,8 +464,8 @@ async function checkWorkerStatus() {
 
 async function checkAggregateStatus() {
   let pollAttempt = 0;
-  let pollInterval = 60000; // 1min
-  let maxPollAttempts = 240; // 240 min = 4 hr
+  let pollInterval = 5000; // 5 sec
+  let maxPollAttempts = 240; // 240 * 5  = 1200 = 20 min 
 
   while (pollAttempt < maxPollAttempts) {
     pollAttempt++;
@@ -474,7 +474,7 @@ async function checkAggregateStatus() {
     if (message === "done") {
       const result = await fetch(`/api/aggregator/get-aggregated-cid`);
       const { cid, accuracy, f1 } = await result.json();
-      console.log("aggregation complete");
+      console.log("aggregation complete: ", accuracy ,f1 );
       return { status: "done", cid, accuracy, f1 };
     } else if (message === "failed") {
       setWarning(`Aggregation failed`);

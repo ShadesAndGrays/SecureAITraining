@@ -46,6 +46,7 @@ def propose():
     model.save_parameters(file_path)
     # Upload parameters
     cid = pin.pinata_upload(file_path)
+    print('sending cid: ',cid)
     # return cid
     return jsonify({"message":"Success","cid":cid})
 

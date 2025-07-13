@@ -3,13 +3,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
 from tqdm.auto import tqdm
 import spacy
 import pandas as pd
 import numpy as np
 import joblib
 import os
-from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, classification_report
 from .model import BaseModel
 
 
@@ -38,7 +39,7 @@ class SpamClassificationHandler(BaseModel):
             self.set_parameters_from_file(model_path)
         
         self.preprocessor = SpacyPreprocessor() 
-        self.vectorizer = joblib.load('download/tfidf_vectorizer.joblib')
+        self.vectorizer = joblib.load('download/fitted_tfidf_vectorizer.joblib')
         self.preprocessor_pipeline = Pipeline([
             # ('spacy_preprocessor',self.preprocessor), # note needed anymore
             ('vectorizer_tfidf',self.vectorizer),
@@ -46,6 +47,7 @@ class SpamClassificationHandler(BaseModel):
         # Fit the model to have parameters to send if initial model
         if initial:
             self.train_model(chunk_parts=1000,train_size=0.1)
+            self.model.classes_ = np.array([0,1]) # binary classification
             pass
 
     def set_parameters_from_file(self,model_parameters_path):
@@ -119,7 +121,7 @@ class SpamClassificationHandler(BaseModel):
         return model
 
 
-    def _load_dataset(self,dataset_path="data/classification_dataset/spam_data.csv", chunk_parts=1, client_id = 0):
+    def _load_dataset(self,dataset_path, chunk_parts=1, client_id = 0):
         df = pd.read_csv(dataset_path)
         # Deterministically shuffle using client_id as seed
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -136,7 +138,7 @@ class SpamClassificationHandler(BaseModel):
         self.x = self.dataset['text']
         self.y = self.dataset['label'] 
 
-    def train_model(self, dataset_path="data/classification_dataset/spam_data.csv", chunk_parts=1, client_id=0,train_size=0.8):
+    def train_model(self, dataset_path="data/classification_dataset/preprocessed_train.csv", chunk_parts=1, client_id=0,train_size=0.8):
         if dataset_path and os.path.exists(dataset_path):
             self._load_dataset(dataset_path, chunk_parts, client_id)
         else:
@@ -145,30 +147,54 @@ class SpamClassificationHandler(BaseModel):
             
         self.train_x = self.x.head(int(len(self.x)*train_size))
         self.train_y = self.y.head(int(len(self.y)*train_size)) 
-        batch_size = 500
-        num_batches = (len(self.train_x) + batch_size - 1) // batch_size
-        for i in tqdm(range(0, len(self.train_x), batch_size), total=num_batches):
-            self.model.partial_fit(
-                self.preprocessor_pipeline.transform(self.train_x[i:i+batch_size]),
-                self.train_y[i:i+batch_size],
-                self.classes
-            )
-        print("Training Complete")
+        # batch_size = 10
+        # num_batches = (len(self.train_x) + batch_size - 1) // batch_size
+        # for i in tqdm(range(0, len(self.train_x), batch_size), total=num_batches):
+        # self.model.partial_fit(
+        #     self.preprocessor_pipeline.transform(self.train_x[i:i+batch_size]),
+        #     self.train_y[i:i+batch_size],
+        #     self.classes
+        # )
+        self.model.partial_fit(
+            self.preprocessor_pipeline.transform(self.train_x),
+            self.train_y,
+            self.classes
+        )
+        print(f"Training Complete Client: {client_id}")
 
-    def evaluate_model(self, test_fraction=0.2):
+    def evaluate_model(self, test_fraction=0.3,evaluation_dataset=''):
+        df = {}
+        if evaluation_dataset:
+            df = pd.read_csv(evaluation_dataset)
+            X_test = df['text']
+            y_test = df['label']
+        else:
+            print("missing evaluation dataset")
+            df = self.dataset.tail(
+                max(1,
+                    int(len(self.dataset) * test_fraction)
+                    ))
+            _, X_test , _, y_test = train_test_split(
+                df['text'],
+                df['label'],
+                test_size=test_fraction,
+                stratify=df['label']
+                )
+
         # Use a held-out section of the dataset for testing
-        test_size = max(1, int(len(self.dataset) * test_fraction))
-        test_df = self.dataset.tail(test_size)
-        X_test = test_df['text']
-        y_test = test_df['label']
+        # test_size = max(1, int(len(self.dataset) * test_fraction))
+        # X_test = test_df['text']
+        # y_test = test_df['label']
         y_pred = self.model.predict(self.preprocessor_pipeline.transform(X_test))
         acc = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred, average='binary')
+        f1 = f1_score(y_test, y_pred, zero_division=0)
+        recall =  recall_score(y_test, y_pred,zero_division=0)
+        precision =  precision_score(y_test,y_pred,zero_division=0)
         report = classification_report(y_test, y_pred)
         print(f"Accuracy: {acc:.4f}")
         print(f"F1-score: {f1:.4f}")
         print(report)
-        return {'accuracy': acc, 'f1': f1, 'report': report}
+        return {'accuracy': acc, 'f1': f1,'precision':precision,'recall':recall}
 
     def save_model(self, save_path):
         joblib.dump(self.model, save_path)
@@ -215,7 +241,7 @@ def simulate(numOfClients,model_parameters_path,current_round,participants):
         models.append(m)
     # training 
     for client_id in range(numOfClients):
-        models[client_id].train_model(chunk_parts=numOfClients+1,client_id=client_id)
+        models[client_id].train_model(chunk_parts=numOfClients,client_id=client_id)
     # evaluation
     metrics = {}
     # return {'accuracy': acc, 'f1': f1, 'report': report}
