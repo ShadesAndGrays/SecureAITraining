@@ -62,8 +62,12 @@ This ensures that all API calls and potential errors are logged, making monitori
 
 The following Environmental variable are requirred to run the application either in a .env file during devleopment of system variables on production
 ```bash
+USE_PINATA=true
 PINATA_API_KEY=00000000000000000000
 PINATA_API_SECRET=0000000000000000000000000000000000000000000000000000000000000000
 PINATA_GATEWAY=emerald-added-flea-339.mypinata.cloud
 PINATA_JWT=json.web.token
+
+IPFS_HOST_IP=127.0.0.1
+IPFS_API_PORT=5001
 ```

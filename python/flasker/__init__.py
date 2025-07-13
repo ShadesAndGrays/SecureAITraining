@@ -45,7 +45,7 @@ def propose():
     file_path = f'download/temp/{fl_type}.joblib'
     model.save_parameters(file_path)
     # Upload parameters
-    cid = pin.pinata_upload(file_path)
+    cid = pin.upload(file_path)
     print('sending cid: ',cid)
     # return cid
     return jsonify({"message":"Success","cid":cid})

@@ -84,10 +84,10 @@ def _start_aggregate(fl_type,cids,round_id,shared_status,shared_result,shared_lo
         case "spam_classification":
             models:list[SpamClassificationHandler] = []
             for cid in cids:
-                file = pin.pinata_download(cid,f'download/temp/aggregation_{cid}.joblib')
+                file = pin.download(cid,f'download/temp/aggregation_{cid}.joblib')
                 models.append(SpamClassificationHandler(model_path=file).extract_parameters())
             global_model, acc, f1, recall, precision = aggregate_spam_classificatoin(models)
-            global_cid = pin.pinata_upload(global_model.save_parameters(f'download/temp/global_aggregation_classification_{round_id}.joblib'))
+            global_cid = pin.upload(global_model.save_parameters(f'download/temp/global_aggregation_classification_{round_id}.joblib'))
             with shared_lock:
                 print('done training')
                 shared_status.set('done')

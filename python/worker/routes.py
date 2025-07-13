@@ -110,7 +110,7 @@ def _start_work(count,cid,fl_type,round_id,participants,shared_status,shared_res
     cids = []
     print(f"uploding {models}")
     for m in models:
-        cid = pin.pinata_upload(m)
+        cid = pin.upload(m)
         cids.append(cid)
         print(f"uploaded {m}\ncid: {cid}\n\n\n")
     print("returning:",{'message' :'success', 'cids': cids, 'metrics': metrics } )
