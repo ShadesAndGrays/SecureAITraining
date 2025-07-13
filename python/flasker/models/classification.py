@@ -127,16 +127,19 @@ class SpamClassificationHandler(BaseModel):
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
         # Split into non-overlapping chunks
         chunk_size = len(df) // chunk_parts
+        remainder  =  len(df) % chunk_parts
         start = client_id * chunk_size
+        end = start + chunk_size + (1 if client_id < remainder else 0)
         # Last client takes the remainder if not divisible
-        if client_id == chunk_parts - 1:
-            end = len(df)
-        else:
-            end = start + chunk_size
+        # if client_id == chunk_parts - 1:
+        #     end = len(df)
+        # else:
+        #     end = start + chunk_size
         self.dataset = df[start:end]
         self.classes = np.unique(df['label'])
         self.x = self.dataset['text']
         self.y = self.dataset['label'] 
+        print('loaded: ', start, ' : ',end)
 
     def train_model(self, dataset_path="data/classification_dataset/preprocessed_train.csv", chunk_parts=1, client_id=0,train_size=0.8):
         if dataset_path and os.path.exists(dataset_path):
