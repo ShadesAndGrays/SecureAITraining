@@ -147,6 +147,12 @@ async function refreshCount(count) {
   counter.innerText = `Count: ${val}`;
 }
 
+async function load_round(address){
+  let c = new web3.eth.Contract(RoundArtificat.abi, address);
+  console.log("Round contract initialized: ",c);
+  c.handleRevert = true;
+  return c
+}
 async function load_round_control(address = "") {
   if (address.length == 0) {
     address = round_control_contract_address;
@@ -375,7 +381,33 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
       //   // console.log("metrics: ", );
       // }
       let result = await checkWorkerStatus(); 
-      if (result.cids) {
+      if (result.cids && result.metrics) {
+        for( let i = 0; i < result.cids.length; i++){
+          let currentRound = await load_round(await contracts["RoundControl"].methods.getRound(currentRoundId).call())
+          console.log(result)
+          const p = participantsList[i]
+// submitModelCid(address,uint256,uint256,uint256,uint256,string)
+          console.log([
+            p,
+            Math.ceil(result.metrics[p].accuracy * 10000),
+            Math.ceil(result.metrics[p].f1 * 10000),
+            Math.ceil(result.metrics[p].recall * 10000),
+            Math.ceil(result.metrics[p].precision * 10000),
+            result.cids[i],
+          ])
+          currentRound.methods.submitModelCid(
+            p,
+            Math.ceil(result.metrics[p].accuracy * 10000),
+            Math.ceil(result.metrics[p].f1 * 10000),
+            Math.ceil(result.metrics[p].recall * 10000),
+            Math.ceil(result.metrics[p].precision * 10000),
+            result.cids[i],
+          ).send({
+            from: connectedAccount,
+          })
+
+
+        }
         const aggegate_form = new FormData();
         aggegate_form.append("flType", flType);
         aggegate_form.append("cids", result.cids);
@@ -394,10 +426,17 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
         // Check aggregation
         let report = await checkAggregateStatus();
         if (report) cid = report.cid;
+        console.log(report)
 
         let roundAddress;
         const receipt = await contracts["RoundControl"].methods
-          .endRound(cid)
+          .endRound(
+            Math.ceil(report.accuracy * 10000),
+            Math.ceil(report.f1 * 10000),
+            Math.ceil(report.recall * 10000),
+            Math.ceil(report.precision * 10000),
+            report.cid
+          )
           .send({
             from: connectedAccount,
           });
@@ -473,9 +512,9 @@ async function checkAggregateStatus() {
     const { message } = await statusResponse.json();
     if (message === "done") {
       const result = await fetch(`/api/aggregator/get-aggregated-cid`);
-      const { cid, accuracy, f1 } = await result.json();
-      console.log("aggregation complete: ", accuracy ,f1 );
-      return { status: "done", cid, accuracy, f1 };
+      const { cid, accuracy, f1, recall,precision } = await result.json();
+      console.log("aggregation complete: ", accuracy ,f1,recall,precision );
+      return { status: "done", cid, accuracy, f1,recall,precision };
     } else if (message === "failed") {
       setWarning(`Aggregation failed`);
       throw new Error(`Aggregation failed`);
@@ -495,40 +534,76 @@ async function checkAggregateStatus() {
 function refreshRoundInfo() {
   let globalModel = document.getElementById("dashboardDataGlobalModel");
   let noOfParticipants = document.getElementById("dashboardDataNoOfClients");
+  let dashboardDataGlobalAccuracy = document.getElementById("dashboardDataAccuracy");
+  let dashboardDataGlobalF1Score = document.getElementById("dashboardDataF1Score");
   let currentParticipants = document.getElementById("currentParticipants");
   // if (currentRoundId)
+
+  // PREVIOUS ROUND
+  if (currentRoundId != 0){
+    contracts["RoundControl"].methods
+      .getRound(Number(currentRoundId)-1)
+      .call()
+      .then((response) => {
+        let c = new web3.eth.Contract(RoundArtificat.abi, response);
+        c.methods
+          .getGlobalMetrics()
+          .call()
+          .then((response) => {
+            globalModel.innerText = response[4];
+            dashboardDataGlobalF1Score.innerText = Number(response[1])/10000;
+            dashboardDataGlobalAccuracy.innerText = Number(response[0])/10000;
+          });
+
+      })
+
+  }
+
+  // CURRENT ROUND
   contracts["RoundControl"].methods
     .getRound(currentRoundId)
     .call()
     .then((response) => {
       if (Number(response) == 0) {
-        globalModel.innerText = "N/A";
+        // globalModel.innerText = "N/A";
         noOfParticipants.innerText = "N/A";
         currentParticipants.innerHTML = "";
       } else {
         let c = new web3.eth.Contract(RoundArtificat.abi, response);
-        c.methods
-          .globalModelCid()
-          .call()
-          .then((response) => {
-            globalModel.innerText = response;
-          });
+        // c.methods
+        //   .getGlobalMetrics()
+        //   .call()
+        //   .then((response) => {
+        //     globalModel.innerText = response[4];
+        //     dashboardDataGlobalF1Score.innerText = response[1];
+        //     dashboardDataGlobalAccuracy.innerText = response[0];
+        //   });
+
         c.methods
           .getParticipants()
           .call()
           .then(async (response) => {
             noOfParticipants.innerText = response.length;
-            let metrics = await (await fetch("/api/worker/get_metrics")).json();
+            let metrics_p = response.map(element => 
+              c.methods.getParticipantsMetrics(element).call()
+            ); 
+            try{
+            let metrics = await Promise.all(metrics_p)
+            console.log('Metrics recieved')
+            console.log(metrics)
 
             currentParticipants.innerHTML = "";
-            for (const p of response) {
+            for (let i =0; i < response.length; i++) {
               currentParticipants.innerHTML += `<tr>
-              <td>${p}</td>
+              <td>${response[i]}</td>
               <td>${
-                metrics.hasOwnProperty(p) ? metrics[p].accuracy : "N/A"
+                metrics ? (metrics[i][0]? Number(metrics[i][0])/10000 : "N/A") : "pending"
               }</td>
-              <td>${metrics.hasOwnProperty(p) ? metrics[p].f1 : "N/A"}</td>
+              <td>${metrics ? (metrics[i][1]? Number(metrics[i][1])/10000 : "N/A") : "pending"}</td>
                 </tr>`;
+            }
+            }catch{
+            console.log('Could not get metrics')
             }
           });
       }

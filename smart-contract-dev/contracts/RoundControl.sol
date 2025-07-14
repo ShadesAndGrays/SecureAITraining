@@ -3,13 +3,23 @@ pragma solidity ^0.8.20;
 
 import "./Registration.sol";
 
+struct Metric {
+    uint256 accuracy;
+    uint256 f1_score;
+    uint256 recall;
+    uint256 precision;
+    string cid;
+    
+}
 contract Round {
     uint256 public roundId;
     string public globalModelCid;
-    string public nextRoundCid;
+    // string public nextRoundCid;
     address[] private participants;
+    Metric public globalMetrics;
     mapping(address => bool) public isParticipant;
-    mapping(address => string) participantCid;
+    // mapping(address => string) participantCid;
+    mapping(address => Metric) public participantMetrics;
 
     constructor(
         uint256 _roundId,
@@ -32,21 +42,83 @@ contract Round {
     function getCids() public view returns (string[] memory) {
         string[] memory cids = new string[](participants.length);
         for (uint i = 0; i < participants.length; i++) {
-            cids[i] = participantCid[participants[i]];
+            cids[i] = participantMetrics[participants[i]].cid;
         }
         return cids;
     }
+    function getGlobalMetrics() public view returns (
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        string memory 
+        ){
+        // Access the struct from the mapping
+        Metric storage metrics = globalMetrics;
+        // Return the individual fields
+        return (
+            metrics.accuracy,
+            metrics.f1_score,
+            metrics.recall,
+            metrics.precision,
+            metrics.cid
+        );
+    }
+
     function getParticipants() public view returns (address[] memory){
         return participants;
     }
-
-    function aggregate(string memory _nextRoundCid) public {
-        nextRoundCid = _nextRoundCid;
+    function getParticipantsMetrics(address participantId) public view returns (
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        string memory 
+        ){
+        // Access the struct from the mapping
+        Metric storage metrics = participantMetrics[participantId];
+        // Return the individual fields
+        return (
+            metrics.accuracy,
+            metrics.f1_score,
+            metrics.recall,
+            metrics.precision,
+            metrics.cid
+        );
     }
 
-    function submitModelCid(address participant, string memory cid) public {
-        require(isParticipant[participant],"Failed Submit: participant is not registered");
-        participantCid[participant] = cid;
+    function aggregate(
+        uint256 accuracy,
+        uint256 f1_score,
+        uint256 recall,
+        uint256 precision,
+        string memory _nextRoundCid
+        ) public {
+        globalMetrics.accuracy = accuracy;
+        globalMetrics.f1_score = f1_score;
+        globalMetrics.recall = recall;
+        globalMetrics.precision = precision;
+        globalMetrics.cid = _nextRoundCid;
+        // nextRoundCid = _nextRoundCid;
+    }
+
+    function submitModelCid(
+        address _participant, 
+        uint256 _accuracy,
+        uint256 _f1_score,
+        uint256 _recall,
+        uint256 _precision,
+        string memory _cid
+        ) public {
+        require(isParticipant[_participant],"Failed Submit: participant is not registered");
+        participantMetrics[_participant] = Metric({
+            accuracy:_accuracy,
+            f1_score:_f1_score,
+            recall:_recall,
+            precision:_precision,
+            cid:_cid
+        });
+        // participantCid[participant] = cid;
     }
 }
 
@@ -103,9 +175,10 @@ contract RoundControl {
             );
             roundMapping[currentRoundId] = address(newRound);
         } else {
+            (,,,,string memory cid) = Round(roundMapping[roundId - 1]).globalMetrics();
             Round newRound = new Round(
                 currentRoundId,
-                Round(roundMapping[roundId - 1]).nextRoundCid(),
+                cid,
                 participants
             );
             roundMapping[currentRoundId] = address(newRound);
@@ -118,11 +191,23 @@ contract RoundControl {
         startRound(noOfParticipants);
     }
 
-    function endRound(string memory _nextRoundCid) public onlyOwner {
+    function endRound(
+        uint256 _accuracy,
+        uint256 _f1_score,
+        uint256 _recall,
+        uint256 _precision,
+        string memory _nextRoundCid
+        ) public onlyOwner {
         require(active, "Failed end: No active round currently in progress");
         active = false;
         emit RoundEnded(currentRoundId,roundMapping[currentRoundId]);
-        Round(roundMapping[currentRoundId]).aggregate(_nextRoundCid);
+        Round(roundMapping[currentRoundId]).aggregate(
+            _accuracy,
+            _f1_score,
+            _recall,
+            _precision,
+            _nextRoundCid
+            );
         nextRound();
     }
 
@@ -137,8 +222,8 @@ contract RoundControl {
         return round;
     }
 
-    function submitParticipantCid(string memory cid) public {
-        require(active, "No active round");
-        Round(roundMapping[currentRoundId]).submitModelCid(msg.sender, cid);
-    }
+    // function submitParticipantCid(string memory cid) public {
+    //     require(active, "No active round");
+    //     Round(roundMapping[currentRoundId]).submitModelCid(msg.sender, cid);
+    // }
 }
