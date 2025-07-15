@@ -24,7 +24,7 @@
 
 - [x] Client selection
 - [x] IPFS hash stroage selection
-- [ ] Model update
+- [x] Model update
 - [x] Model submission
 - [ ] Model validation
 - [ ] Incentive/reward mechanism for participants
@@ -34,11 +34,11 @@
 ## FEDERATED LEARNING 
 - [x] Data processing pipeline
 - [x] Model Selction
-- [ ] Model aggregation 
+- [x] Model aggregation 
 - [ ] Privacy preserving techniquies
   - [ ] Differential privacy
   - [ ] Secure aggregation / Homomorphic Encryption (paillier encryption)
-- [ ] Evaluation metrics and reporting
+- [x] Evaluation metrics and reporting
 
 ## INFRASTRUCTRE/ Deployment
 - [ ] Dockerization of all components
