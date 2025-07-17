@@ -286,7 +286,12 @@ export function showPage(pageId) {
 showPage("proposerPage");
 
 async function proposeTraining(e) {
+
   e.preventDefault();
+  if (!contracts["RoundControl"] || !connectedAccount) {
+    setWarning("Contract / Account is not initialized");
+    return;
+  }
   document.getElementById("proposeSubmitBtn").disabled = true;
   const form = e.target;
   const formData = Object.fromEntries(new FormData(form).entries());
@@ -461,6 +466,7 @@ async function startTraining(count, flType, cid, rounds, participantsList) {
         }
       }
     }
+    setWarning("Training Complete",true);
   } catch (err) {
     console.log(err);
     setWarning("Failed Training Initiation" + err);
@@ -658,7 +664,7 @@ async function refreshParticipantList() {
   // const val = await c.methods.getRegistrants().call();
   let participants = "";
   for (let i = 0; i < val.length; i++) {
-    participants += `<tr><td>${val[i]}</td><td>${100}</td></tr>`;
+    participants += `<tr><td>${val[i]}</td>`;//<td>${100}</td></tr>`;
   }
   list.innerHTML = participants;
 }
