@@ -2,7 +2,10 @@
 
 This document outlines how to run your Flask application in both development and production environments.
 
+
 ## Development Environment
+
+The packages required are located in `requirements.txt`. To install all necessary packages `pip install -r requirements.txt`
 
 For local development and testing, use the Flask built-in development server.
 

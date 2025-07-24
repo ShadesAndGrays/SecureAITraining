@@ -50,8 +50,9 @@ Considerations:
 ### Decentralized Application (DApp)
 
 1. Run the React app via Vite.
-2. Register using your MetaMask wallet.
+2. Ensure MetaMask wallet is installed.
 3. A local Python server is used on the client side to train the local model and interact with the DApp.
+
 
 ### Smart Contract Development
 
@@ -60,6 +61,13 @@ To run the test node with Hardhat:
 ```bash
 cd smart-contract-dev
 npm run launch:dev
+```
+
+To run the deploy contracts run the following command:
+
+```bash
+cd smart-contract-dev
+npm run setup:dev-fresh
 ```
 
 ---
